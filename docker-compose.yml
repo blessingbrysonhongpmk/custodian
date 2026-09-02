@@ -1,12 +1,30 @@
 services:
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: treeguard
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "5173:5173"
-      - "5000:5000"
+      - "5001:5001"
     environment:
       - NODE_ENV=production
-      - PORT=5000
+      - PORT=5001
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/treeguard
+    depends_on:
+      - db
     restart: unless-stopped
+
+volumes:
+  pgdata:

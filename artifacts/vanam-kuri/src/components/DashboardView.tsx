@@ -48,19 +48,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-              CUSTODIA CLIMATE-TECH OS
+              TREEGUARD CUSTODY CONTINUITY
             </span>
             <span className="text-xs text-slate-300">
-              Pilot: Loyola Green Campus 2024–2027
+              No tree left behind.
             </span>
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-            “Don’t count trees planted. <span className="text-emerald-400">Count trees alive.</span>”
+            "Every tree has a caretaker. <span className="text-emerald-400">Every caretaker has a successor.</span>"
           </h1>
 
           <p className="text-sm text-slate-300 leading-relaxed">
-            Plantation is an event. Survival is the outcome. CUSTODIA replaces one-time plantation photo vanity with continuous custody tracking, independent peer verification, and root-cause failure autopsies.
+            Tracking a tree is not enough. Responsibility must survive. TreeGuard ensures custody continuity — so no tree becomes invisible when its caretaker graduates, moves, or stops participating.
           </p>
         </div>
       </div>

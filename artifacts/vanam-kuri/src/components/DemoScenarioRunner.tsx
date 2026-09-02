@@ -26,38 +26,38 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({
   const demoSteps = [
     {
       num: 1,
-      title: "1. Campus Overview & Verification Gap",
-      subtitle: "500 planted, 318 verified alive. 25.4% verification gap exposed.",
-      badge: "Accountability",
+      title: "1. 500 Trees Planted — Healthy System",
+      subtitle: "Dashboard shows active custody across campus. Every tree has a caretaker.",
+      badge: "Overview",
     },
     {
       num: 2,
-      title: "2. Inspect Pilot Tree TN-COL-00125",
-      subtitle: "3D digital passport, growth timeline, and Arun's tenure ledger.",
-      badge: "Digital Twin",
+      title: "2. Student Graduating — Custody Expiring",
+      subtitle: "Arun Kumar's custody of TG-IND-001 expires in 14 days.",
+      badge: "Risk Detected",
     },
     {
       num: 3,
-      title: "3. Arun Graduating → Handoff to Priya",
-      subtitle: "Prevent ownerless trees with mandatory custody handoff ceremony.",
-      badge: "Custody Chain",
+      title: "3. Successor Matching Activated",
+      subtitle: "TreeGuard identifies nearby candidates and recommends Priya Nair (94% match).",
+      badge: "AI Matching",
     },
     {
       num: 4,
-      title: "4. Independent Peer Verification",
-      subtitle: "Divya captures ground photo with AI anomaly consistency check.",
-      badge: "Anti-Fraud Audit",
+      title: "4. Priya Accepts Responsibility",
+      subtitle: "Custody pledge signed. Digital handoff ceremony completed.",
+      badge: "Handoff",
     },
     {
       num: 5,
-      title: "5. Failure Autopsy & Mortality Intelligence",
-      subtitle: "Classify why trees died in Zone B (Water shortage & cattle breach).",
-      badge: "Root-Cause AI",
+      title: "5. Failure Autopsy — Learning from Loss",
+      subtitle: "Zone B tree death analyzed. Water shortage identified as root cause.",
+      badge: "Root-Cause",
     },
     {
       num: 6,
-      title: "6. Executive Audit & Impact Statement",
-      subtitle: "“Don’t count trees planted. Count trees alive.”",
+      title: "6. Custody Gap Prevented — Impact Report",
+      subtitle: "\"No tree left behind.\" Executive dashboard confirms continuity.",
       badge: "Final Outcome",
     }
   ];
@@ -76,10 +76,10 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-400 font-bold bg-emerald-900/50 px-2 py-0.5 rounded border border-emerald-500/30">
-                3-Minute Judge Demo Tour
+                ▶ TreeGuard 3-Minute Demo
               </span>
               <span className="text-xs font-semibold text-slate-300">
-                Step {currentStep + 1} of 6
+                Step {currentStep + 1} of {demoSteps.length}
               </span>
             </div>
             <p className="text-xs font-bold text-white mt-0.5">
@@ -115,7 +115,7 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({
             onClick={() => onStepChange((currentStep + 1) % demoSteps.length)}
             className="ml-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-xs shrink-0"
           >
-            {currentStep === demoSteps.length - 1 ? 'Restart Demo' : 'Next Step'}
+            {currentStep === demoSteps.length - 1 ? '🔄 Restart Demo' : 'Next Step →'}
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -1,108 +1,178 @@
-# 🌳 Vanam Kuri
+# 🌳 TreeGuard
 
-**Vanam Kuri** is an open, trust-verifiable community tree custodianship and urban/rural forestry tracking platform. It enables communities, custodians, and environmental groups to plant, monitor, verify, and maintain tree health with cryptographic checkpoints, custody history, and mutual-aid payouts.
+### Every tree has a caretaker. Every caretaker has a successor.
+
+> *No tree left behind.*
 
 ---
 
-## ⚡ Quick Start
+## The Problem
+
+Tree survival doesn't fail because of bad planting — it fails because **responsibility disappears**.
+
+- Students graduate
+- Volunteers relocate  
+- NGO projects end
+- CSR funding cycles close
+- Community members stop participating
+
+Existing platforms ask: *"Is the tree alive?"*
+
+**TreeGuard asks: *"Who is responsible if it isn't — and does that responsibility ever lapse?"***
+
+---
+
+## The Solution
+
+TreeGuard is an **AI-assisted custody continuity platform** that ensures every planted tree always has an accountable caretaker.
+
+When custody is about to expire, TreeGuard:
+1. **Detects** the approaching expiry
+2. **Matches** the best successor candidate using a scoring algorithm
+3. **Transfers** responsibility through a digital handoff ceremony
+4. **Verifies** tree health using Gemini AI photo analysis
+5. **Escalates** to institutional anchors if no successor accepts
+
+**A tree can lose a caretaker. It should never lose accountability.**
+
+---
+
+## Features
+
+| Feature | Description |
+|---------|-------------|
+| 🌱 **Tree Passport** | Complete digital identity with QR code, GPS, custody chain, and health timeline |
+| 🔗 **Custody Chain** | Persistent history of every custodian who cared for a tree |
+| ⏰ **Custody Expiry Engine** | Automatic detection of expiring custody with status transitions |
+| 🤝 **Successor Matching** | AI-scored candidate recommendations (distance, reliability, availability) |
+| 🔄 **Custody Handoff** | Digital ceremony with pledge acceptance and certificate generation |
+| 🏛️ **Institutional Anchor** | Trees always belong to an institution — never fully orphaned |
+| 🤖 **AI Verification** | Gemini-powered photo analysis with confidence scoring |
+| 📍 **GPS Verification** | Haversine distance check between checkpoint and tree location |
+| 🔴 **Risk Center** | Real-time risk events with severity-based prioritization |
+| 📊 **Impact Dashboard** | Computed metrics from real data (not hardcoded) |
+| 📱 **Notification Center** | In-app + simulated SMS/WhatsApp alerts |
+| ⏳ **Demo Time Machine** | Simulate time progression for hackathon demos |
+| 🏥 **Failure Autopsy** | Learn from tree deaths — classify causes, document lessons |
+| 📋 **Orphan Risk Score** | Predictive scoring for trees at risk of losing their custodian |
+
+---
+
+## Architecture
+
+```
+┌──────────────────────┐     ┌──────────────────────┐
+│    Frontend (React)   │────▶│   Backend (Express)   │
+│  Vite + TailwindCSS   │     │   REST API + Engines  │
+│  localhost:3000       │     │   localhost:5001       │
+└──────────────────────┘     └──────────┬───────────┘
+                                        │
+                              ┌─────────▼─────────┐
+                              │   PostgreSQL DB    │
+                              │   Drizzle ORM      │
+                              │   10 Tables        │
+                              └─────────┬──────────┘
+                                        │
+                              ┌─────────▼──────────┐
+                              │   Google Gemini AI  │
+                              │   (Optional)        │
+                              └────────────────────┘
+```
+
+---
+
+## Quick Start
 
 ### Prerequisites
-- **Node.js**: `v20.0.0` or higher (Node 24 recommended)
-- **Package Manager**: `npm`, `pnpm`, or `yarn`
+- Node.js 18+
+- pnpm
+- PostgreSQL (or Docker)
 
-### 1. Install Dependencies
+### 1. Clone & Install
+
 ```bash
-npm install
-# or
+git clone https://github.com/blessingbrysonhongpmk/custodian
+cd custodian
 pnpm install
 ```
 
-### 2. Run Development Server
+### 2. Database Setup
+
 ```bash
-# Start the frontend application (http://localhost:5173)
-npm run dev
+# Start PostgreSQL (via Docker)
+docker compose up -d db
 
-# Or start both frontend and backend API concurrently
-npm run dev:all
+# Push schema
+cd lib/db
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard pnpm run push
+
+# Seed data (500 trees, 12 users, 4 organizations)
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard pnpm run seed
+cd ../..
 ```
 
----
+### 3. Environment Variables
 
-## 🛠 Available Scripts
-
-| Script | Description |
-| :--- | :--- |
-| `npm run dev` | Runs the Vanam Kuri frontend application via Vite |
-| `npm run dev:api` | Runs the Express API backend server (port 5000) |
-| `npm run dev:all` | Runs both Frontend and Backend concurrently |
-| `npm run dev:mockup` | Runs the UI Prototyping Sandbox |
-| `npm run build` | Builds the frontend and backend for production |
-| `npm run typecheck` | Validates TypeScript across all packages |
-
----
-
-## 🏗 Project Architecture
-
-This repository is organized as a clean, modular workspace:
-
-```
-├── artifacts/
-│   ├── vanam-kuri/          # Core React frontend application (Vite + TailwindCSS + Lucide)
-│   ├── api-server/          # Express API server with pino logging and health checks
-│   └── mockup-sandbox/      # UI design and prototyping sandbox
-├── lib/
-│   ├── db/                  # Database schema and Drizzle ORM models
-│   ├── api-zod/             # Zod validation schemas
-│   ├── api-client-react/    # TanStack React Query client hooks
-│   └── api-spec/            # OpenAPI specification & codegen
-├── scripts/                 # Cross-platform runner and build scripts
-├── Dockerfile               # Container deployment configuration
-├── docker-compose.yml       # Docker compose setup
-├── vercel.json              # Vercel deployment configuration
-└── netlify.toml             # Netlify deployment configuration
-```
-
----
-
-## 🚀 Hosting & Deployment Guide
-
-### Option 1: Vercel (Frontend)
-1. Import this repository into [Vercel](https://vercel.com).
-2. **Framework Preset**: `Vite`
-3. **Root Directory**: `artifacts/vanam-kuri`
-4. **Build Command**: `npm run build`
-5. **Output Directory**: `dist`
-
-### Option 2: Netlify (Frontend)
-1. Connect repository in [Netlify](https://netlify.com).
-2. **Base directory**: `artifacts/vanam-kuri`
-3. **Build command**: `npm run build`
-4. **Publish directory**: `dist`
-
-### Option 3: Docker / Container (Full-stack)
-Build and run the entire application using Docker:
 ```bash
-docker-compose up --build
+cp .env.example .env
+# Edit .env and set:
+# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard
+# GEMINI_API_KEY= (optional — app works without it in demo mode)
 ```
 
-### Option 4: Render / Railway / Cloud VPS
-- **Build Command**: `npm install && npm run build`
-- **Start Command**: `npm run dev:api` (or custom server runner)
-- Set Environment Variables:
-  - `PORT`: (provided by host or defaults to 5000)
-  - `DATABASE_URL`: `postgres://user:password@host:5432/vanamkuri`
+### 4. Run
+
+```bash
+# Frontend only (demo data)
+pnpm run dev
+
+# Frontend + API server
+pnpm run dev:all
+```
+
+- Frontend: http://localhost:3000
+- API: http://localhost:5001
 
 ---
 
-## 🔐 Environment Variables
+## Demo Mode
 
-| Variable | Required | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `PORT` | Optional | `5173` (web) / `5000` (api) | HTTP Server Port |
-| `DATABASE_URL` | Optional | — | PostgreSQL connection string |
-| `BASE_PATH` | Optional | `/` | Base URL path for web deployment |
+The app works **without** a database or Gemini API key:
+- **No database**: Falls back to built-in demo data
+- **No Gemini key**: Uses simulated AI analysis with a "Demo Mode" badge
+- **Simulated notifications**: SMS and WhatsApp delivery is simulated
+
+### Demo Time Machine (Admin Only)
+Simulate time progression to demonstrate custody expiry:
+- Today → +30 days → +60 days → +90 days
+- Graduation Event → Custodian Inactive → Missed Checkpoint
+
+### 3-Minute Judge Demo
+Built-in guided demo walkthrough:
+1. 500 trees planted — healthy system
+2. Student graduating — custody expiring in 14 days
+3. Successor matching activated
+4. Priya accepts responsibility
+5. Failure autopsy — learning from loss
+6. Custody gap prevented — "No tree left behind"
 
 ---
 
-## 📜 License
-MIT License
+## Production Roadmap
+
+- [ ] Real SMS integration (MSG91 / Twilio)
+- [ ] WhatsApp Business API
+- [ ] Municipal tree registry API integration
+- [ ] Large-scale GIS mapping
+- [ ] Mobile app (React Native)
+- [ ] Multi-language support (Hindi, Tamil, Malayalam, Kannada)
+
+---
+
+## Team
+
+Built at the TreeGuard Hackathon 2026.
+
+---
+
+**TREEGUARD** — *Tracking a tree is not enough. Responsibility must survive.*

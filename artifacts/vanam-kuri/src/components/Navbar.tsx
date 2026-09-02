@@ -44,13 +44,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-slate-950 text-sm tracking-tight">CUSTODIA</span>
+                <span className="font-extrabold text-slate-950 text-sm tracking-tight">TREEGUARD</span>
                 <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-200">
-                  Green Tamil Nadu Mission • Campus Pilot
+                  Custody Continuity Platform
                 </span>
               </div>
               <p className="text-[10px] font-medium text-slate-500 hidden sm:block">
-                Track Responsibility. Verify Survival. Intervene Before Failure.
+                Every tree has a caretaker. Every caretaker has a successor.
               </p>
             </div>
           </div>

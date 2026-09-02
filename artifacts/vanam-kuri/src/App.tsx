@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Tree, 
   ActiveTab, 
@@ -14,6 +14,8 @@ import {
   mockRiskQueue, 
   pilotTree 
 } from './data/mockData';
+
+import { treesApi, dashboardApi, risksApi, notificationsApi, demoApi } from './lib/api';
 
 // Components
 import { Navbar } from './components/Navbar';
@@ -33,9 +35,12 @@ import { FailureAutopsyModal } from './components/FailureAutopsyModal';
 import { RegisterTreeModal } from './components/RegisterTreeModal';
 
 export default function App() {
+  // API-driven state with mock data fallback
   const [trees, setTrees] = useState<Tree[]>(sampleTrees);
   const [reliability, setReliability] = useState<OrganizationReliability>(initialReliability);
   const [riskItems, setRiskItems] = useState<RiskItem[]>(mockRiskQueue);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [apiConnected, setApiConnected] = useState<boolean>(false);
   
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [activeRole, setActiveRole] = useState<ActiveRole>('ADMIN');
@@ -58,47 +63,116 @@ export default function App() {
     }, 3500);
   };
 
+  // Try loading data from API, fall back to mock data
+  const loadFromApi = useCallback(async () => {
+    try {
+      // Try dashboard metrics
+      const dashboardData = await dashboardApi.getMetrics();
+      setReliability({
+        projectName: dashboardData.projectName || "TreeGuard Campus Pilot",
+        totalPlanted: dashboardData.totalPlanted,
+        verifiedAlive: dashboardData.verifiedAlive,
+        atRiskCount: dashboardData.atRiskCount,
+        failedCount: dashboardData.failedCount,
+        orphanedCount: dashboardData.orphanedCount,
+        claimedSurvivalRate: dashboardData.claimedSurvivalRate,
+        verifiedSurvivalRate: dashboardData.verifiedSurvivalRate,
+        verificationGap: dashboardData.verificationGap,
+        custodyContinuityRate: dashboardData.custodyContinuityRate,
+        checkpointComplianceRate: dashboardData.checkpointComplianceRate,
+        riskRecoveryRate: dashboardData.riskRecoveryRate,
+        topFailureCause: dashboardData.topFailureCause,
+        dominantFailureZone: dashboardData.dominantFailureZone,
+      });
+      setApiConnected(true);
+    } catch {
+      // API not available, keep mock data
+      console.log("ℹ API not connected — using demo data. Start the API server for live data.");
+    }
+
+    try {
+      const risksData = await risksApi.list();
+      if (risksData.risks && risksData.risks.length > 0) {
+        setRiskItems(risksData.risks.map((r: any) => ({
+          id: `RISK-${r.id}`,
+          treeId: r.tree?.treeCode || `Tree-${r.treeId}`,
+          treeSpecies: r.tree?.species || "Unknown",
+          zone: r.tree?.zone || "Unknown",
+          landmark: r.tree?.landmark || "",
+          status: r.riskType === "no_custodian" ? "orphaned" : "at-risk" as any,
+          severity: r.severity,
+          title: r.reason?.split(".")[0] || "Risk Event",
+          reason: r.reason,
+          daysOverdue: 0,
+          custodianName: r.custodian?.name || "Unassigned",
+          actionRequired: r.suggestedAction || "Review required",
+          suggestedActionType: r.riskType === "no_custodian" ? "REASSIGN" : "VERIFY" as any,
+        })));
+      }
+    } catch { /* keep mock */ }
+
+    try {
+      const notifData = await notificationsApi.list();
+      if (notifData.notifications) {
+        setNotifications(notifData.notifications);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    loadFromApi();
+  }, [loadFromApi]);
+
   // Demo Runner Script Handler
-  const handleDemoStepChange = (stepIndex: number) => {
+  const handleDemoStepChange = async (stepIndex: number) => {
     setDemoStep(stepIndex);
     switch (stepIndex) {
-      case 0: // Step 1: 500 trees overview & verification gap
+      case 0:
         setActiveTab('dashboard');
         setActiveRole('ADMIN');
-        showToast("Step 1: Notice the 25.4% Verification Gap (89% Claimed vs 63.6% Verified Alive).");
+        showToast("Step 1: 500 trees planted. Dashboard shows healthy system. Notice the verification gap.");
         break;
-      case 1: // Step 2: Open Pilot Tree TN-COL-00125
+      case 1:
         setSelectedTreeId('TN-COL-00125');
         setActiveTab('passport');
         setActiveRole('CUSTODIAN');
-        showToast("Step 2: Inspecting Pilot Tree TN-COL-00125 (Arun K. - Graduating in 14 days).");
+        showToast("Step 2: Student custodian Arun Kumar graduating. Tree TG-IND-001 custody expires in 14 days.");
         break;
-      case 2: // Step 3: Custody handoff Arun -> Priya
+      case 2:
         setSelectedTreeId('TN-COL-00125');
         setActiveTab('passport');
         setHandoffModalTree(pilotTree);
-        showToast("Step 3: Initiating mandatory Custody Handoff Ceremony (Arun → Priya).");
+        showToast("Step 3: TreeGuard detects risk. Successor matching engine finds nearby candidates.");
         break;
-      case 3: // Step 4: Peer Verification with Divya
+      case 3:
         setSelectedTreeId('TN-COL-00125');
         setActiveTab('passport');
         setActiveRole('PEER_VERIFIER');
         setVerificationModalTree(pilotTree);
-        showToast("Step 4: Independent Peer Audit with AI-assisted anomaly detection.");
+        showToast("Step 4: Priya accepts responsibility. Custody chain transfers successfully.");
         break;
-      case 4: // Step 5: Failure Autopsy
+      case 4:
         setSelectedTreeId('TN-COL-00042');
         setActiveTab('autopsy');
         setActiveRole('ADMIN');
-        showToast("Step 5: Inspecting Failure Autopsy in Zone B (Water shortage root-cause).");
+        showToast("Step 5: Three months later — checkpoint submitted. Gemini verifies health.");
         break;
-      case 5: // Step 6: Final Impact Report
+      case 5:
         setActiveTab('impact-report');
         setActiveRole('ADMIN');
-        showToast("Step 6: Executive TN Green Mission Audit Dossier & Closing Impact Statement.");
+        showToast("Step 6: Dashboard shows: 'Custody Gap Prevented.' NO TREE LEFT BEHIND. 🌳");
         break;
       default:
         break;
+    }
+
+    // Try API time travel for demo
+    if (apiConnected) {
+      try {
+        const actions = ["today", "today", "today", "today", "today", "today"];
+        await demoApi.timeTravel(actions[stepIndex] || "today");
+        await loadFromApi();
+      } catch { /* ignore */ }
     }
   };
 
@@ -118,7 +192,7 @@ export default function App() {
           checkpointsTotal: 4,
           handoffReason: undefined,
           pledgeSigned: true,
-          certificateId: `CERT-TN-2025-${treeId}-B`,
+          certificateId: `CERT-TG-${Date.now().toString().slice(-8)}`,
           active: true,
         });
 
@@ -133,9 +207,9 @@ export default function App() {
       return t;
     }));
 
-    // Remove from risk queue
     setRiskItems(prev => prev.filter(r => r.treeId !== treeId));
-    showToast(`Responsibility for Tree ${treeId} successfully transferred to ${newCustodianName}!`);
+    showToast(`🌱 Responsibility for Tree ${treeId} successfully transferred to ${newCustodianName}! Custody gap prevented.`);
+    if (apiConnected) loadFromApi();
   };
 
   // Verification Submission Handler
@@ -156,7 +230,7 @@ export default function App() {
       return t;
     }));
 
-    showToast(`Peer verification recorded for Tree ${treeId}. Status confirmed as: ${status.toUpperCase()}`);
+    showToast(`✅ AI-assisted verification recorded for Tree ${treeId}. Status: ${status.toUpperCase()}. Human accountability confirmed.`);
   };
 
   // Autopsy Saved Handler
@@ -173,7 +247,7 @@ export default function App() {
       return t;
     }));
 
-    showToast(`Failure autopsy saved for Tree ${treeId}. Mortality intelligence updated.`);
+    showToast(`📋 Failure autopsy saved for Tree ${treeId}. Learning from this failure to prevent future losses.`);
   };
 
   // Register New Tree Handler
@@ -186,16 +260,24 @@ export default function App() {
     }));
     setSelectedTreeId(newTree.id);
     setActiveTab('passport');
-    showToast(`Tree Passport created for ${newTree.id} (${newTree.speciesName})!`);
+    showToast(`🌱 Tree Passport created for ${newTree.id} (${newTree.speciesName})! Every tree has a caretaker.`);
+    if (apiConnected) loadFromApi();
   };
 
   return (
     <div className="min-h-screen bg-slate-50/50 text-slate-900 flex flex-col leaf-grid-bg antialiased">
       {/* Top Floating Notification Toast */}
       {notificationToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl border border-emerald-400 text-xs font-semibold flex items-center gap-2 animate-rise">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl border border-emerald-400 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           <span>{notificationToast}</span>
+        </div>
+      )}
+
+      {/* API Connection Status */}
+      {!apiConnected && (
+        <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-1.5 px-4 font-medium">
+          📡 Running with demo data — Start the API server ({`pnpm run dev:api`}) and database for live data
         </div>
       )}
 
@@ -346,10 +428,10 @@ export default function App() {
       {/* Footer */}
       <footer className="mt-12 py-6 border-t border-slate-200/80 bg-white text-xs text-slate-500 text-center space-y-1">
         <p className="font-semibold text-slate-800">
-          CUSTODIA • Tree Survival, Responsibility & Verification OS
+          TREEGUARD • Every tree has a caretaker. Every caretaker has a successor.
         </p>
         <p>
-          Green Tamil Nadu Mission Campus Initiative • Loyola Pilot Phase 2024–2027
+          No tree left behind. • AI-assisted verification. Human accountability.
         </p>
       </footer>
     </div>

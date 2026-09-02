@@ -13,7 +13,7 @@ const buildProc = spawn("node", ["./build.mjs"], {
 
 buildProc.on("exit", (code) => {
   if (code === 0) {
-    spawn("node", ["--enable-source-maps", "./dist/index.mjs"], {
+    spawn("node", ["--env-file=../../.env", "--enable-source-maps", "./dist/index.mjs"], {
       cwd: apiDir,
       stdio: "inherit",
     });
