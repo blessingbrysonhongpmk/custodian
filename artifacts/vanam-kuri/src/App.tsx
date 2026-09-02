@@ -1,344 +1,357 @@
-import { type ReactNode, useMemo, useState } from 'react';
-import { Link, Route, Switch, useLocation, useParams, Router as WouterRouter } from 'wouter';
-import {
-  ArrowDownRight,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUpRight,
-  Bell,
-  Check,
-  CheckCircle2,
-  ChevronRight,
-  CircleAlert,
-  CircleDot,
-  ClipboardCheck,
-  Download,
-  FileCheck2,
-  Flower2,
-  HeartPulse,
-  Home,
-  Leaf,
-  MapPin,
-  Menu,
-  MoreHorizontal,
-  Play,
-  Plus,
-  Radio,
-  Search,
-  ShieldCheck,
-  Sprout,
-  TreePine,
-  Upload,
-  Users,
-  Video,
-  X,
-  XCircle,
-} from 'lucide-react';
-import NotFound from '@/pages/not-found';
+import React, { useState } from 'react';
+import { 
+  Tree, 
+  ActiveTab, 
+  ActiveRole, 
+  OrganizationReliability, 
+  RiskItem, 
+  FailureAutopsy, 
+  EvidenceConsistency 
+} from './types/custodia';
+import { 
+  initialReliability, 
+  sampleTrees, 
+  mockRiskQueue, 
+  pilotTree 
+} from './data/mockData';
 
-type TreeStatus = 'healthy' | 'at-risk' | 'dead' | 'orphaned';
-type CheckpointStatus = 'verified' | 'self-reported' | 'missed' | 'mismatch';
-type EvidenceType = 'photo' | 'video' | 'note';
+// Components
+import { Navbar } from './components/Navbar';
+import { DemoScenarioRunner } from './components/DemoScenarioRunner';
+import { DashboardView } from './components/DashboardView';
+import { TreePassportView } from './components/TreePassportView';
+import { InteractiveMap } from './components/InteractiveMap';
+import { RiskCenterView } from './components/RiskCenterView';
+import { FailureInsightsView } from './components/FailureInsightsView';
+import { CustodianMobileView } from './components/CustodianMobileView';
+import { ImpactReportView } from './components/ImpactReportView';
 
-type Checkpoint = {
-  date: string;
-  verifier: string;
-  status: CheckpointStatus;
-  evidenceType: EvidenceType;
-  evidenceUrl: string;
-  note: string;
-};
+// Modals
+import { CustodyHandoffModal } from './components/CustodyHandoffModal';
+import { PeerVerificationModal } from './components/PeerVerificationModal';
+import { FailureAutopsyModal } from './components/FailureAutopsyModal';
+import { RegisterTreeModal } from './components/RegisterTreeModal';
 
-type CustodyEvent = {
-  date: string;
-  from: string;
-  to: string;
-  reason: string;
-};
+export default function App() {
+  const [trees, setTrees] = useState<Tree[]>(sampleTrees);
+  const [reliability, setReliability] = useState<OrganizationReliability>(initialReliability);
+  const [riskItems, setRiskItems] = useState<RiskItem[]>(mockRiskQueue);
+  
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
+  const [activeRole, setActiveRole] = useState<ActiveRole>('ADMIN');
+  const [selectedTreeId, setSelectedTreeId] = useState<string>('TN-COL-00125');
+  const [demoStep, setDemoStep] = useState<number>(0);
 
-type Tree = {
-  id: string;
-  species: string;
-  plantedAt: string;
-  zone: string;
-  coordinates: [number, number];
-  status: TreeStatus;
-  custodian: string;
-  group: string;
-  checkpoints: Checkpoint[];
-  custodyHistory: CustodyEvent[];
-};
+  // Modals state
+  const [handoffModalTree, setHandoffModalTree] = useState<Tree | null>(null);
+  const [verificationModalTree, setVerificationModalTree] = useState<Tree | null>(null);
+  const [autopsyModalTree, setAutopsyModalTree] = useState<Tree | null>(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState<boolean>(false);
+  const [notificationToast, setNotificationToast] = useState<string | null>(null);
 
-type KuriGroup = {
-  id: string;
-  name: string;
-  zone: string;
-  trustScore: number;
-  members: string[];
-  checkpointCount: number;
-  payoutHistory: { month: string; amount: string; note: string }[];
-};
+  const selectedTree = trees.find(t => t.id === selectedTreeId) || trees[0];
 
-type RiskItem = {
-  id: string;
-  type: 'orphaned' | 'missed checkpoint' | 'mismatch';
-  treeId: string;
-  severity: 'high' | 'medium' | 'low';
-  description: string;
-};
-
-const names = ['Meena R.', 'Suresh K.', 'Asha P.', 'Jagan V.', 'Parvathi S.', 'Naveen M.', 'Irfan A.', 'Kavitha N.'];
-const species = ['Neem', 'Pongamia', 'Rain Tree', 'Indian Almond', 'Arjun', 'Gulmohar', 'Jamun', 'Peepal'];
-const zones = ['Temple East', 'Lake Bund', 'School Road', 'Market Lane', 'Kaveri Layout'];
-const statusPattern: TreeStatus[] = ['healthy', 'healthy', 'healthy', 'healthy', 'at-risk', 'healthy', 'orphaned', 'healthy', 'healthy', 'dead'];
-
-function makeTree(index: number): Tree {
-  const id = `NK-${String(index + 1).padStart(3, '0')}`;
-  const status = index === 7 ? 'at-risk' : statusPattern[index % statusPattern.length];
-  const planted = new Date(2024, 5 + (index % 4), 4 + (index % 21));
-  const date = planted.toISOString().slice(0, 10);
-  const checkpointCount = status === 'dead' ? 2 : 3 + (index % 3);
-  const checkpoints: Checkpoint[] = Array.from({ length: checkpointCount }, (_, step) => ({
-    date: new Date(planted.getTime() + (step + 1) * 1000 * 60 * 60 * 24 * 43).toISOString().slice(0, 10),
-    verifier: names[(index + step + 2) % names.length],
-    status: status === 'orphaned' && step === checkpointCount - 1 ? 'missed' : step === checkpointCount - 1 && index % 7 === 0 ? 'mismatch' : step % 2 === 0 ? 'verified' : 'self-reported',
-    evidenceType: step % 3 === 0 ? 'photo' : step % 3 === 1 ? 'video' : 'note',
-    evidenceUrl: `evidence://nallur/${id}/${step + 1}`,
-    note: step === checkpointCount - 1 && status === 'at-risk' ? 'Leaves curling at the eastern edge. Needs a second watering visit.' : step === 0 ? 'New planting logged with soil ring and bamboo guard.' : 'Canopy is holding; checked mulch and guard.',
-  }));
-  return {
-    id,
-    species: species[index % species.length],
-    plantedAt: date,
-    zone: zones[index % zones.length],
-    coordinates: [12.972 + (index % 9) * 0.0006, 77.594 + (index % 7) * 0.0006],
-    status,
-    custodian: status === 'orphaned' ? 'No current custodian' : names[index % names.length],
-    group: `kuri-${(index % 4) + 1}`,
-    checkpoints,
-    custodyHistory: [
-      { date, from: 'Vanam Kuri nursery', to: names[index % names.length], reason: 'Planted and accepted' },
-      ...(index % 3 === 0 ? [{ date: '2024-11-18', from: names[index % names.length], to: names[(index + 2) % names.length], reason: 'Neighbourhood rotation' }] : []),
-    ],
+  const showToast = (message: string) => {
+    setNotificationToast(message);
+    setTimeout(() => {
+      setNotificationToast(null);
+    }, 3500);
   };
-}
 
-const seedTrees: Tree[] = Array.from({ length: 45 }, (_, index) => makeTree(index));
-seedTrees[7] = { ...seedTrees[7], id: 'NK-008', species: 'Peepal', zone: 'Lake Bund', custodian: 'Muthu S.', group: 'kuri-1' };
-seedTrees[12] = { ...seedTrees[12], id: 'NK-013', species: 'Neem', status: 'orphaned', custodian: 'No current custodian', zone: 'School Road', group: 'kuri-2' };
-seedTrees[19] = { ...seedTrees[19], id: 'NK-020', species: 'Jamun', status: 'dead', zone: 'Market Lane', group: 'kuri-3' };
-
-const groups: KuriGroup[] = [
-  { id: 'kuri-1', name: 'Lake Bund Circle', zone: 'Lake Bund', trustScore: 88, members: ['Meena R.', 'Muthu S.', 'Asha P.', 'Jagan V.'], checkpointCount: 38, payoutHistory: [{ month: 'Feb', amount: '₹4,800', note: '24 verified checkpoints' }, { month: 'Jan', amount: '₹3,600', note: '18 verified checkpoints' }, { month: 'Dec', amount: '₹4,200', note: '21 verified checkpoints' }] },
-  { id: 'kuri-2', name: 'School Road Greens', zone: 'School Road', trustScore: 81, members: ['Parvathi S.', 'Naveen M.', 'Kavitha N.', 'Irfan A.'], checkpointCount: 31, payoutHistory: [{ month: 'Feb', amount: '₹3,900', note: '19 verified checkpoints' }, { month: 'Jan', amount: '₹4,400', note: '22 verified checkpoints' }] },
-  { id: 'kuri-3', name: 'Market Lane Canopy', zone: 'Market Lane', trustScore: 74, members: ['Suresh K.', 'Asha P.', 'Irfan A.', 'Meena R.'], checkpointCount: 27, payoutHistory: [{ month: 'Feb', amount: '₹2,800', note: '14 verified checkpoints' }, { month: 'Jan', amount: '₹3,400', note: '17 verified checkpoints' }] },
-  { id: 'kuri-4', name: 'Temple East Roots', zone: 'Temple East', trustScore: 93, members: ['Jagan V.', 'Kavitha N.', 'Muthu S.', 'Naveen M.'], checkpointCount: 44, payoutHistory: [{ month: 'Feb', amount: '₹5,600', note: '28 verified checkpoints' }, { month: 'Jan', amount: '₹5,000', note: '25 verified checkpoints' }] },
-];
-
-const seedRisks: RiskItem[] = [
-  { id: 'risk-01', type: 'orphaned', treeId: 'NK-013', severity: 'high', description: 'Custody expired 9 days ago. No next caretaker nominated.' },
-  { id: 'risk-02', type: 'missed checkpoint', treeId: 'NK-007', severity: 'medium', description: 'April checkpoint window closes tomorrow. Last seen near School Road.' },
-  { id: 'risk-03', type: 'mismatch', treeId: 'NK-008', severity: 'high', description: 'Self-report says healthy; nearby verifier saw dry leaf curl.' },
-  { id: 'risk-04', type: 'orphaned', treeId: 'NK-027', severity: 'medium', description: 'Custodian moved out of ward. Handoff has not been accepted.' },
-];
-
-const groupById = (id: string) => groups.find((group) => group.id === id) ?? groups[0];
-const treeById = (id: string) => seedTrees.find((tree) => tree.id === id) ?? seedTrees[0];
-const formatDate = (date: string) => new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(date));
-
-function Brand({ light = false }: { light?: boolean }) {
-  return (
-    <Link href="/" className={`flex items-center gap-3 ${light ? 'text-[#f5efdf]' : 'text-[hsl(var(--foreground))]'}`} data-testid="link-brand">
-      <span className={`grid h-10 w-10 place-items-center rounded-[13px] ${light ? 'bg-[#e5ae5d] text-[#193b31]' : 'bg-[hsl(var(--primary))] text-[#f5efdf]'}`}>
-        <Sprout size={22} strokeWidth={1.8} />
-      </span>
-      <span>
-        <span className="block font-serif text-xl leading-none">Vanam Kuri</span>
-        <span className={`section-label mt-1 block ${light ? 'text-[#bfd0c2]' : 'text-[hsl(var(--muted-foreground))]'}`}>every tree, held in trust</span>
-      </span>
-    </Link>
-  );
-}
-
-function StatusPill({ status }: { status: TreeStatus | CheckpointStatus }) {
-  const config: Record<string, { label: string; cls: string; dot: string }> = {
-    healthy: { label: 'Healthy', cls: 'bg-[#dbe9d4] text-[#2d673d]', dot: '#4d9b61' },
-    verified: { label: 'Verified', cls: 'bg-[#dbe9d4] text-[#2d673d]', dot: '#4d9b61' },
-    'at-risk': { label: 'At risk', cls: 'bg-[#f7e4bd] text-[#8e5f18]', dot: '#d28c27' },
-    'self-reported': { label: 'Self-reported', cls: 'bg-[#e9e5d8] text-[#756f5f]', dot: '#9c967e' },
-    orphaned: { label: 'Orphaned', cls: 'bg-[#f6ddd0] text-[#974a2e]', dot: '#be6440' },
-    dead: { label: 'Dead', cls: 'bg-[#dedbd4] text-[#67665f]', dot: '#787870' },
-    missed: { label: 'Missed', cls: 'bg-[#f6ddd0] text-[#974a2e]', dot: '#be6440' },
-    mismatch: { label: 'Mismatch', cls: 'bg-[#f7e4bd] text-[#8e5f18]', dot: '#d28c27' },
+  // Demo Runner Script Handler
+  const handleDemoStepChange = (stepIndex: number) => {
+    setDemoStep(stepIndex);
+    switch (stepIndex) {
+      case 0: // Step 1: 500 trees overview & verification gap
+        setActiveTab('dashboard');
+        setActiveRole('ADMIN');
+        showToast("Step 1: Notice the 25.4% Verification Gap (89% Claimed vs 63.6% Verified Alive).");
+        break;
+      case 1: // Step 2: Open Pilot Tree TN-COL-00125
+        setSelectedTreeId('TN-COL-00125');
+        setActiveTab('passport');
+        setActiveRole('CUSTODIAN');
+        showToast("Step 2: Inspecting Pilot Tree TN-COL-00125 (Arun K. - Graduating in 14 days).");
+        break;
+      case 2: // Step 3: Custody handoff Arun -> Priya
+        setSelectedTreeId('TN-COL-00125');
+        setActiveTab('passport');
+        setHandoffModalTree(pilotTree);
+        showToast("Step 3: Initiating mandatory Custody Handoff Ceremony (Arun → Priya).");
+        break;
+      case 3: // Step 4: Peer Verification with Divya
+        setSelectedTreeId('TN-COL-00125');
+        setActiveTab('passport');
+        setActiveRole('PEER_VERIFIER');
+        setVerificationModalTree(pilotTree);
+        showToast("Step 4: Independent Peer Audit with AI-assisted anomaly detection.");
+        break;
+      case 4: // Step 5: Failure Autopsy
+        setSelectedTreeId('TN-COL-00042');
+        setActiveTab('autopsy');
+        setActiveRole('ADMIN');
+        showToast("Step 5: Inspecting Failure Autopsy in Zone B (Water shortage root-cause).");
+        break;
+      case 5: // Step 6: Final Impact Report
+        setActiveTab('impact-report');
+        setActiveRole('ADMIN');
+        showToast("Step 6: Executive TN Green Mission Audit Dossier & Closing Impact Statement.");
+        break;
+      default:
+        break;
+    }
   };
-  const item = config[status];
-  return <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${item.cls}`}><span className="status-dot" style={{ background: item.dot }} />{item.label}</span>;
-}
 
-function Avatar({ name, size = 'sm' }: { name: string; size?: 'sm' | 'md' }) {
-  return <span className={`inline-grid shrink-0 place-items-center rounded-full bg-[#d9cfae] font-bold text-[#4f4836] ${size === 'md' ? 'h-10 w-10 text-sm' : 'h-7 w-7 text-[10px]'}`} title={name}>{name.split(' ').map((part) => part[0]).join('').slice(0, 2)}</span>;
-}
+  // Custody Handoff Success Handler
+  const handleHandoffSuccess = (treeId: string, newCustodianName: string, newUnit: string) => {
+    setTrees(prev => prev.map(t => {
+      if (t.id === treeId) {
+        const updatedHistory = t.custodyHistory.map(c => ({ ...c, active: false }));
+        updatedHistory.push({
+          id: `CUST-${Date.now().toString().slice(-4)}`,
+          custodianName: newCustodianName,
+          custodianRole: "Lead Custodian",
+          custodianEmail: `${newCustodianName.toLowerCase().replace(' ', '.')}@campus.edu`,
+          organizationUnit: newUnit,
+          assignedDate: new Date().toISOString().slice(0, 10),
+          checkpointsCompleted: 0,
+          checkpointsTotal: 4,
+          handoffReason: undefined,
+          pledgeSigned: true,
+          certificateId: `CERT-TN-2025-${treeId}-B`,
+          active: true,
+        });
 
-function AppShell({ children, notice, onDismiss }: { children: ReactNode; notice?: string; onDismiss?: () => void }) {
-  const [location] = useLocation();
-  const [mobileNav, setMobileNav] = useState(false);
-  const nav = [
-    { href: '/dashboard', label: 'Ward overview', icon: Home },
-    { href: '/trees/NK-008', label: 'Tree passports', icon: TreePine },
-    { href: '/handoff', label: 'Live handoff', icon: ArrowRight, badge: '1' },
-    { href: '/verify', label: 'Verify nearby', icon: ClipboardCheck, badge: '6' },
-    { href: '/groups/kuri-1', label: 'Kuri groups', icon: Users },
-    { href: '/risk', label: 'Risk & escalation', icon: CircleAlert, badge: '4' },
-    { href: '/autopsy', label: 'Failure autopsies', icon: FileCheck2 },
-    { href: '/impact', label: 'Impact report', icon: HeartPulse },
-  ];
+        return {
+          ...t,
+          currentCustodian: newCustodianName,
+          currentCustodianUnit: newUnit,
+          activeAlert: undefined,
+          custodyHistory: updatedHistory,
+        };
+      }
+      return t;
+    }));
+
+    // Remove from risk queue
+    setRiskItems(prev => prev.filter(r => r.treeId !== treeId));
+    showToast(`Responsibility for Tree ${treeId} successfully transferred to ${newCustodianName}!`);
+  };
+
+  // Verification Submission Handler
+  const handleVerificationSubmitted = (
+    treeId: string, 
+    status: 'healthy' | 'at-risk' | 'failed' | 'mismatch',
+    consistency: EvidenceConsistency,
+    verifierNotes: string
+  ) => {
+    setTrees(prev => prev.map(t => {
+      if (t.id === treeId) {
+        return {
+          ...t,
+          status,
+          healthScore: status === 'healthy' ? 95 : status === 'at-risk' ? 52 : 0,
+        };
+      }
+      return t;
+    }));
+
+    showToast(`Peer verification recorded for Tree ${treeId}. Status confirmed as: ${status.toUpperCase()}`);
+  };
+
+  // Autopsy Saved Handler
+  const handleAutopsySaved = (treeId: string, autopsy: FailureAutopsy) => {
+    setTrees(prev => prev.map(t => {
+      if (t.id === treeId) {
+        return {
+          ...t,
+          status: 'failed',
+          healthScore: 0,
+          failureAutopsy: autopsy,
+        };
+      }
+      return t;
+    }));
+
+    showToast(`Failure autopsy saved for Tree ${treeId}. Mortality intelligence updated.`);
+  };
+
+  // Register New Tree Handler
+  const handleTreeRegistered = (newTree: Tree) => {
+    setTrees(prev => [newTree, ...prev]);
+    setReliability(prev => ({
+      ...prev,
+      totalPlanted: prev.totalPlanted + 1,
+      verifiedAlive: prev.verifiedAlive + 1,
+    }));
+    setSelectedTreeId(newTree.id);
+    setActiveTab('passport');
+    showToast(`Tree Passport created for ${newTree.id} (${newTree.speciesName})!`);
+  };
+
   return (
-    <div className="app-shell bg-[hsl(var(--background))]">
-      <aside className={`fixed inset-y-0 left-0 z-40 w-[260px] -translate-x-full border-r border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar))] px-5 py-7 text-[hsl(var(--sidebar-foreground))] transition-transform duration-300 lg:translate-x-0 ${mobileNav ? 'translate-x-0' : ''}`}>
-        <div className="flex items-center justify-between"><Brand light /><button onClick={() => setMobileNav(false)} className="rounded-lg p-2 text-[#b7c7b9] lg:hidden" data-testid="button-close-navigation"><X size={18} /></button></div>
-        <div className="mt-12">
-          <div className="section-label px-3 text-[#829c89]">Nallur ward / field mode</div>
-          <nav className="mt-3 space-y-1">
-            {nav.map(({ href, label, icon: Icon, badge }) => {
-              const active = location === href || (href.startsWith('/trees') && location.startsWith('/trees')) || (href.startsWith('/groups') && location.startsWith('/groups'));
-              return <Link key={href} href={href} onClick={() => setMobileNav(false)} className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-all ${active ? 'bg-[#2b5947] text-[#f5efdf] shadow-[inset_3px_0_0_#e5ae5d]' : 'text-[#b7c7b9] hover:bg-[#244838] hover:text-[#f5efdf]'}`} data-testid={`link-navigation-${label.toLowerCase().replaceAll(' ', '-')}`}>
-                <Icon size={17} strokeWidth={active ? 2.2 : 1.7} /><span className="flex-1">{label}</span>{badge && <span className={`grid h-5 min-w-5 place-items-center rounded-full text-[10px] font-bold ${active ? 'bg-[#e5ae5d] text-[#193b31]' : 'bg-[#385e4c] text-[#d3decf]'}`}>{badge}</span>}
-              </Link>;
-            })}
-          </nav>
+    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex flex-col leaf-grid-bg antialiased">
+      {/* Top Floating Notification Toast */}
+      {notificationToast && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl border border-emerald-400 text-xs font-semibold flex items-center gap-2 animate-rise">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+          <span>{notificationToast}</span>
         </div>
-        <div className="absolute bottom-6 left-5 right-5 rounded-2xl border border-[#3a6753] bg-[#204434] p-4">
-          <div className="flex items-center gap-2 text-[#e5ae5d]"><Radio size={15} /><span className="section-label">Live in the field</span></div>
-          <p className="mt-2 text-xs leading-5 text-[#b7c7b9]">45 trees are carrying a story today. Last sync 2 min ago.</p>
-          <div className="mt-3 flex items-center gap-2"><span className="status-dot animate-breathe" style={{ background: '#86b978' }} /><span className="text-[11px] text-[#d3decf]">Ward network healthy</span></div>
-        </div>
-      </aside>
-      {mobileNav && <button className="fixed inset-0 z-30 bg-[#193b31]/40 lg:hidden" onClick={() => setMobileNav(false)} aria-label="Close navigation" data-testid="button-dismiss-navigation" />}
-      <div className="lg:pl-[260px]">
-        <header className="sticky top-0 z-20 flex h-[72px] items-center justify-between border-b border-[hsl(var(--border))] bg-[hsl(var(--background))]/95 px-5 backdrop-blur-md sm:px-8">
-          <button className="rounded-xl border border-[hsl(var(--border))] p-2.5 lg:hidden" onClick={() => setMobileNav(true)} data-testid="button-open-navigation"><Menu size={19} /></button>
-          <div className="hidden items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] sm:flex"><MapPin size={16} className="text-[hsl(var(--accent))]" /><span>Nallur ward</span><span className="text-[#b4b09e]">/</span><span>Field dashboard</span></div>
-          <div className="ml-auto flex items-center gap-3"><button className="relative rounded-xl border border-[hsl(var(--border))] p-2.5 hover:bg-[hsl(var(--muted))]" data-testid="button-notifications"><Bell size={18} /><span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[hsl(var(--accent))]" /></button><div className="hidden items-center gap-2 border-l border-[hsl(var(--border))] pl-3 sm:flex"><Avatar name="Meena R." /><div><div className="text-xs font-bold">Meena R.</div><div className="mono text-[9px] text-[hsl(var(--muted-foreground))]">ward steward</div></div></div></div>
-        </header>
-        {notice && <div className="mx-5 mt-5 flex items-center justify-between rounded-xl border border-[#e3c48d] bg-[#fff1cd] px-4 py-3 text-sm text-[#76531a] sm:mx-8"><span className="flex items-center gap-2"><CheckCircle2 size={16} />{notice}</span><button onClick={onDismiss} className="rounded p-1 hover:bg-[#f5dfae]" data-testid="button-dismiss-notice"><X size={15} /></button></div>}
-        <main className="mx-auto max-w-[1440px] px-5 py-7 sm:px-8 sm:py-9">{children}</main>
-      </div>
+      )}
+
+      {/* Main Navbar */}
+      <Navbar
+        activeTab={activeTab}
+        onSelectTab={(tab) => setActiveTab(tab)}
+        activeRole={activeRole}
+        onSelectRole={(role) => setActiveRole(role)}
+        onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
+        riskCount={riskItems.length}
+      />
+
+      {/* Main Content Body */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
+        {/* 3-Minute Hackathon Demo Script Bar */}
+        <DemoScenarioRunner
+          currentStep={demoStep}
+          onStepChange={handleDemoStepChange}
+        />
+
+        {/* Tab 1: Executive Organization Dashboard */}
+        {activeTab === 'dashboard' && (
+          <DashboardView
+            reliability={reliability}
+            riskItems={riskItems}
+            trees={trees}
+            onOpenTree={(id) => {
+              setSelectedTreeId(id);
+              setActiveTab('passport');
+            }}
+            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+            onOpenRiskCenter={() => setActiveTab('risk-center')}
+            onOpenAutopsy={() => setActiveTab('autopsy')}
+          />
+        )}
+
+        {/* Tab 2: Living Tree Passport with 3D Twin & Checkpoint Timeline */}
+        {activeTab === 'passport' && (
+          <TreePassportView
+            tree={selectedTree}
+            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+            onOpenVerification={(tree) => setVerificationModalTree(tree)}
+            onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
+          />
+        )}
+
+        {/* Tab 3: Interactive Campus Tracking Map & Ground Locator */}
+        {activeTab === 'map' && (
+          <InteractiveMap
+            trees={trees}
+            selectedTreeId={selectedTreeId}
+            onSelectTree={(tree) => setSelectedTreeId(tree.id)}
+            onOpenPassport={(treeId) => {
+              setSelectedTreeId(treeId);
+              setActiveTab('passport');
+            }}
+            onOpenVerification={(tree) => setVerificationModalTree(tree)}
+          />
+        )}
+
+        {/* Tab 4: Survival Risk Center & Escalation Queue */}
+        {activeTab === 'risk-center' && (
+          <RiskCenterView
+            riskItems={riskItems}
+            trees={trees}
+            onOpenTree={(id) => {
+              setSelectedTreeId(id);
+              setActiveTab('passport');
+            }}
+            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+            onOpenVerification={(tree) => setVerificationModalTree(tree)}
+            onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
+          />
+        )}
+
+        {/* Tab 5: Failure Insights & Mortality Intelligence */}
+        {activeTab === 'autopsy' && (
+          <FailureInsightsView
+            trees={trees}
+            onOpenTree={(id) => {
+              setSelectedTreeId(id);
+              setActiveTab('passport');
+            }}
+            onOpenAutopsyModal={(tree) => setAutopsyModalTree(tree)}
+          />
+        )}
+
+        {/* Tab 6: Custodian Mobile View ("My Trees") */}
+        {activeTab === 'custodian-view' && (
+          <CustodianMobileView
+            trees={trees}
+            onOpenTree={(id) => {
+              setSelectedTreeId(id);
+              setActiveTab('passport');
+            }}
+            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+            onOpenVerification={(tree) => setVerificationModalTree(tree)}
+          />
+        )}
+
+        {/* Tab 7: Official Audit Export & Impact Dossier */}
+        {activeTab === 'impact-report' && (
+          <ImpactReportView
+            reliability={reliability}
+            trees={trees}
+          />
+        )}
+      </main>
+
+      {/* MODALS */}
+      {handoffModalTree && (
+        <CustodyHandoffModal
+          tree={handoffModalTree}
+          isOpen={!!handoffModalTree}
+          onClose={() => setHandoffModalTree(null)}
+          onHandoffSuccess={handleHandoffSuccess}
+        />
+      )}
+
+      {verificationModalTree && (
+        <PeerVerificationModal
+          tree={verificationModalTree}
+          isOpen={!!verificationModalTree}
+          onClose={() => setVerificationModalTree(null)}
+          onVerificationSubmitted={handleVerificationSubmitted}
+        />
+      )}
+
+      {autopsyModalTree && (
+        <FailureAutopsyModal
+          tree={autopsyModalTree}
+          isOpen={!!autopsyModalTree}
+          onClose={() => setAutopsyModalTree(null)}
+          onAutopsySaved={handleAutopsySaved}
+        />
+      )}
+
+      {isRegisterModalOpen && (
+        <RegisterTreeModal
+          isOpen={isRegisterModalOpen}
+          onClose={() => setIsRegisterModalOpen(false)}
+          onTreeRegistered={handleTreeRegistered}
+          existingCount={trees.length}
+        />
+      )}
+
+      {/* Footer */}
+      <footer className="mt-12 py-6 border-t border-slate-200/80 bg-white text-xs text-slate-500 text-center space-y-1">
+        <p className="font-semibold text-slate-800">
+          CUSTODIA • Tree Survival, Responsibility & Verification OS
+        </p>
+        <p>
+          Green Tamil Nadu Mission Campus Initiative • Loyola Pilot Phase 2024–2027
+        </p>
+      </footer>
     </div>
   );
 }
-
-function SectionHeading({ eyebrow, title, detail, action }: { eyebrow: string; title: string; detail?: string; action?: ReactNode }) {
-  return <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><div className="section-label text-[hsl(var(--accent))]">{eyebrow}</div><h1 className="serif mt-2 text-4xl leading-[.98] tracking-[-.03em] text-[hsl(var(--foreground))] sm:text-5xl">{title}</h1>{detail && <p className="mt-3 max-w-xl text-sm leading-6 text-[hsl(var(--muted-foreground))]">{detail}</p>}</div>{action}</div>;
-}
-
-function MetricCard({ label, value, note, accent = 'green', icon: Icon }: { label: string; value: string; note: string; accent?: 'green' | 'gold' | 'terracotta'; icon: typeof TreePine }) {
-  const colors = { green: 'bg-[#dbe9d4] text-[#2d673d]', gold: 'bg-[#f7e4bd] text-[#8e5f18]', terracotta: 'bg-[#f6ddd0] text-[#974a2e]' };
-  return <div className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)] transition-transform hover:-translate-y-0.5"><div className="flex items-start justify-between"><span className="section-label text-[hsl(var(--muted-foreground))]">{label}</span><span className={`grid h-8 w-8 place-items-center rounded-lg ${colors[accent]}`}><Icon size={16} /></span></div><div className="mt-4 text-3xl font-extrabold tracking-[-.04em]">{value}</div><p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{note}</p></div>;
-}
-
-function Landing() {
-  const [, setLocation] = useLocation();
-  return <div className="grain min-h-[100dvh] overflow-hidden bg-[#193b31] text-[#f5efdf]">
-    <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-6 sm:px-8"><Brand light /><div className="hidden items-center gap-7 text-sm text-[#b7c7b9] md:flex"><a href="#why" data-testid="link-landing-why">Why Kuri</a><a href="#how" data-testid="link-landing-how">How it works</a><button onClick={() => setLocation('/dashboard')} className="rounded-full border border-[#557462] px-4 py-2 text-[#e5ae5d] transition hover:bg-[#2b5947]" data-testid="button-landing-demo">Open demo <ArrowUpRight size={14} className="ml-1 inline" /></button></div><button onClick={() => setLocation('/dashboard')} className="rounded-full bg-[#e5ae5d] px-4 py-2.5 text-xs font-extrabold text-[#193b31] md:hidden" data-testid="button-landing-mobile-demo">Demo <ArrowUpRight size={14} className="ml-1 inline" /></button></header>
-    <section className="relative mx-auto grid max-w-7xl items-center gap-12 px-5 pb-20 pt-16 sm:px-8 sm:pt-24 lg:grid-cols-[1.08fr_.92fr] lg:pb-32 lg:pt-28">
-      <div className="relative z-10 animate-rise"><div className="section-label flex items-center gap-3 text-[#e5ae5d]"><span className="h-px w-8 bg-[#e5ae5d]" />A living accountability layer for India</div><h1 className="serif mt-7 max-w-3xl text-[clamp(3.7rem,9vw,8.2rem)] leading-[.86] tracking-[-.065em]">Trees don't need supervisors.<br /><em className="text-[#e5ae5d]">They need a Kuri.</em></h1><p className="mt-8 max-w-lg text-base leading-7 text-[#c4d2c5] sm:text-lg">A responsibility-transfer network where every tree has a named caretaker, a nearby witness, and a story that can be checked.</p><div className="mt-10 flex flex-wrap items-center gap-3"><button onClick={() => setLocation('/dashboard')} className="rounded-full bg-[#e5ae5d] px-6 py-3.5 text-sm font-extrabold text-[#193b31] transition hover:-translate-y-0.5 hover:bg-[#f1c879]" data-testid="button-enter-ward">Enter Nallur ward <ArrowRight size={16} className="ml-2 inline" /></button><a href="#why" className="rounded-full px-5 py-3.5 text-sm font-bold text-[#d3decf] transition hover:bg-[#2b5947]" data-testid="link-see-the-gap">See the gap <ArrowDownRight size={16} className="ml-1 inline" /></a></div></div>
-      <div className="relative min-h-[390px] animate-rise delay-2 lg:min-h-[530px]"><div className="absolute right-0 top-1/2 h-[330px] w-[330px] -translate-y-1/2 rounded-full bg-[#2b5947] sm:h-[460px] sm:w-[460px]" /><div className="absolute right-[4%] top-[13%] h-[260px] w-[260px] rounded-full border border-[#557462] opacity-60 sm:h-[360px] sm:w-[360px]" /><svg viewBox="0 0 440 540" className="absolute right-[8%] top-[2%] h-[470px] w-[380px] sm:h-[570px] sm:w-[470px]" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Illustration of a cared-for tree"><path d="M219 500c4-86 2-165-4-232" stroke="#d8a154" strokeWidth="14" strokeLinecap="round" /><path d="M215 318c-36-46-59-70-96-93M218 350c36-43 60-72 110-100M215 276c-5-57-12-92-28-126" stroke="#d8a154" strokeWidth="8" strokeLinecap="round" /><path d="M114 223C36 218 19 146 65 99c42-43 96-26 123 17 6-63 69-91 117-57 40 28 43 86 9 119 50 13 68 71 32 106-44 43-112 23-130-23-26 48-70 65-109 42-44-26-49-65-34-80Z" fill="#5a8663" /><path d="M82 194c35-11 62 1 83 25M261 126c-20 19-27 49-21 72M302 214c-28-12-50-8-70 10" stroke="#87aa78" strokeWidth="6" strokeLinecap="round" opacity=".7" /></svg><div className="absolute bottom-1 left-2 rounded-2xl border border-[#557462] bg-[#204434] p-4 shadow-xl sm:bottom-8 sm:left-0"><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-full bg-[#dbe9d4] text-[#2d673d]"><ShieldCheck size={20} /></span><div><div className="text-xs font-bold">Tree NK-008</div><div className="mono mt-1 text-[10px] text-[#a5beaa]">verified 2 days ago</div></div></div></div><div className="absolute right-0 top-5 rounded-full border border-[#557462] bg-[#204434] px-4 py-2 text-xs text-[#e5ae5d]"><span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#86b978]" />45 stories alive</div></div>
-    </section>
-    <section id="why" className="border-y border-[#315645] bg-[#204434] px-5 py-20 sm:px-8 sm:py-28"><div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[.8fr_1.2fr]"><div><div className="section-label text-[#e5ae5d]">The uncomfortable truth</div><h2 className="serif mt-5 max-w-md text-5xl leading-[.94] tracking-[-.05em] sm:text-6xl">A green tick is not a living tree.</h2><p className="mt-6 max-w-sm text-sm leading-6 text-[#b7c7b9]">Most drives report what was planted. Vanam Kuri records who stood beside it afterwards.</p></div><div className="rounded-[28px] border border-[#557462] bg-[#193b31] p-6 sm:p-10"><div className="mb-10 flex items-center justify-between"><div><div className="section-label text-[#829c89]">Nallur pilot / 2024</div><div className="mt-2 text-sm text-[#d3decf]">Same planting drive, two versions of reality</div></div><span className="rounded-full bg-[#2b5947] px-3 py-1 text-[10px] font-bold text-[#e5ae5d]">45 trees</span></div><div className="space-y-7"><div><div className="mb-2 flex justify-between text-sm"><span>Self-reported survival</span><strong className="text-[#e5ae5d]">91%</strong></div><div className="h-3 rounded-full bg-[#315645]"><div className="h-3 w-[91%] rounded-full bg-[#e5ae5d]" /></div></div><div><div className="mb-2 flex justify-between text-sm"><span>Community-verified survival</span><strong className="text-[#f08e62]">74%</strong></div><div className="h-3 rounded-full bg-[#315645]"><div className="h-3 w-[74%] rounded-full bg-[#f08e62]" /></div></div></div><div className="mt-10 flex items-start gap-3 border-t border-[#315645] pt-5 text-sm leading-6 text-[#c4d2c5]"><CircleAlert size={18} className="mt-0.5 shrink-0 text-[#f08e62]" />The 17-point gap is not a failure of planting. It is a failure to keep showing up.</div></div></div></section>
-    <section id="how" className="bg-[#f2eddf] px-5 py-20 text-[#193b31] sm:px-8 sm:py-28"><div className="mx-auto max-w-7xl"><div className="section-label text-[#b86743]">How a Kuri holds</div><h2 className="serif mt-5 max-w-2xl text-5xl leading-[.94] tracking-[-.05em] sm:text-7xl">One tree.<br /><span className="text-[#a1683c]">Three layers of care.</span></h2><div className="mt-16 grid gap-5 md:grid-cols-3">{[{ n: '01', title: 'Custody', text: 'A real person accepts the next 90 days. Not a department. Not a dashboard.', icon: HandIcon }, { n: '02', title: 'Neighbourhood proof', text: 'A nearby Kuri member checks the evidence and makes the claim trustworthy.', icon: EyeIcon }, { n: '03', title: 'Learning from loss', text: 'When a tree dies, we write the autopsy so the next one has a better chance.', icon: BookIcon }].map(({ n, title, text, icon: Icon }) => <div key={n} className="group rounded-[24px] border border-[#d6ceba] bg-[#f8f4e9] p-6 transition hover:-translate-y-1 hover:border-[#a1683c] sm:p-8"><div className="flex items-center justify-between"><span className="mono text-xs text-[#b86743]">{n}</span><Icon /></div><h3 className="serif mt-14 text-3xl">{title}</h3><p className="mt-3 text-sm leading-6 text-[#6a7061]">{text}</p></div>)}</div><div className="mt-16 flex flex-wrap items-center justify-between gap-5 border-t border-[#d6ceba] pt-7"><p className="serif text-2xl">Ready to meet the ward?</p><button onClick={() => setLocation('/dashboard')} className="rounded-full bg-[#193b31] px-6 py-3 text-sm font-bold text-[#f5efdf] transition hover:bg-[#2b5947]" data-testid="button-enter-demo-bottom">Walk into the demo <ArrowRight size={15} className="ml-1 inline" /></button></div></div></section>
-    <footer className="flex flex-wrap items-center justify-between gap-3 bg-[#193b31] px-5 py-8 text-xs text-[#829c89] sm:px-8"><Brand light /><span className="mono">Built for the people who keep showing up.</span></footer>
-  </div>;
-}
-
-function HandIcon() { return <span className="grid h-10 w-10 place-items-center rounded-full bg-[#dbe9d4] text-[#2d673d]"><Users size={18} /></span>; }
-function EyeIcon() { return <span className="grid h-10 w-10 place-items-center rounded-full bg-[#f7e4bd] text-[#8e5f18]"><ShieldCheck size={18} /></span>; }
-function BookIcon() { return <span className="grid h-10 w-10 place-items-center rounded-full bg-[#f6ddd0] text-[#974a2e]"><FileCheck2 size={18} /></span>; }
-
-function ClusterMap({ trees, onSelect }: { trees: Tree[]; onSelect: (id: string) => void }) {
-  return <div className="map-surface relative h-[330px] overflow-hidden rounded-[22px] border border-[#ccd2bb] sm:h-[430px]"><div className="absolute left-[8%] top-[12%] h-[28%] w-[37%] rounded-[50%] border-2 border-dashed border-[#9bb290] opacity-60" /><div className="absolute bottom-[12%] right-[5%] h-[30%] w-[42%] rounded-[50%] border-2 border-dashed border-[#9bb290] opacity-60" /><div className="absolute left-5 top-5 rounded-lg bg-[#f5efdf]/80 px-3 py-2 text-[10px] font-bold text-[#52614f] backdrop-blur"><MapPin size={12} className="mr-1 inline" />Nallur field layer</div>{trees.map((tree, index) => { const [lat, lon] = tree.coordinates; const left = 10 + ((index * 17 + Math.round(lat * 1000)) % 78); const top = 16 + ((index * 23 + Math.round(lon * 1000)) % 68); const colors: Record<TreeStatus, string> = { healthy: '#4d9b61', 'at-risk': '#d28c27', dead: '#787870', orphaned: '#be6440' }; return <button key={tree.id} style={{ left: `${left}%`, top: `${top}%`, backgroundColor: colors[tree.status] }} onClick={() => onSelect(tree.id)} className="group absolute grid h-5 w-5 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-[#f5efdf] shadow-md transition hover:z-10 hover:scale-150" title={`${tree.id} · ${tree.species}`} data-testid={`button-map-tree-${tree.id}`}><span className="absolute -bottom-8 hidden whitespace-nowrap rounded-md bg-[#193b31] px-2 py-1 text-[9px] text-[#f5efdf] group-hover:block">{tree.id}</span></button>; })}<div className="absolute bottom-4 left-4 flex flex-wrap gap-3 rounded-xl bg-[#f5efdf]/90 px-3 py-2 backdrop-blur">{[['healthy', 'Healthy'], ['at-risk', 'At risk'], ['orphaned', 'Orphaned'], ['dead', 'Dead']].map(([key, label]) => <span key={key} className="flex items-center gap-1.5 text-[10px] font-bold text-[#52614f]"><i className="status-dot" style={{ background: ({ healthy: '#4d9b61', 'at-risk': '#d28c27', orphaned: '#be6440', dead: '#787870' } as Record<string, string>)[key] }} />{label}</span>)}</div></div>;
-}
-
-function Dashboard() {
-  const [, setLocation] = useLocation();
-  const [trees] = useState(seedTrees);
-  const healthy = trees.filter((tree) => tree.status === 'healthy').length;
-  const atRisk = trees.filter((tree) => tree.status === 'at-risk').length;
-  return <AppShell><div className="animate-rise"><div className="flex flex-wrap items-start justify-between gap-5"><SectionHeading eyebrow="Tuesday, 18 February 2025" title="Good morning, Meena." detail="The ward is a living system. Here is what needs your attention before the sun gets high." action={<button onClick={() => setLocation('/verify')} className="rounded-xl bg-[hsl(var(--primary))] px-4 py-3 text-sm font-bold text-[hsl(var(--primary-foreground))] shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5" data-testid="button-start-verification"><ClipboardCheck size={16} className="mr-2 inline" />Start a verification</button>} /></div><div className="mb-7 flex flex-wrap gap-2"><span className="rounded-full bg-[#dbe9d4] px-3 py-1.5 text-xs font-bold text-[#2d673d]"><span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-[#4d9b61]" />Live ward view</span><span className="rounded-full bg-[hsl(var(--muted))] px-3 py-1.5 text-xs text-[hsl(var(--muted-foreground))]">Last synced 2 min ago</span></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><MetricCard label="Trees in the ward" value="45" note="since the June planting drive" icon={TreePine} /><MetricCard label="Verified alive" value={`${healthy}`} note="2 more than last checkpoint" accent="green" icon={ShieldCheck} /><MetricCard label="Need a visit" value={`${atRisk + 4}`} note="1 urgent · 5 due this week" accent="gold" icon={CircleAlert} /><MetricCard label="Trust score" value="84.6" note="+4.2 since January" accent="terracotta" icon={HeartPulse} /></div></div><div className="mt-7 grid gap-5 xl:grid-cols-[1.35fr_.65fr]"><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)] sm:p-6"><div className="mb-5 flex items-start justify-between"><div><div className="section-label text-[hsl(var(--accent))]">The ward, mapped</div><h2 className="serif mt-2 text-3xl">45 trees in Nallur</h2></div><button onClick={() => setLocation('/trees/NK-008')} className="text-xs font-bold text-[hsl(var(--primary))]" data-testid="button-open-tree-map">Open passport <ArrowUpRight size={13} className="ml-1 inline" /></button></div><ClusterMap trees={trees} onSelect={(id) => setLocation(`/trees/${id}`)} /></section><section className="rounded-2xl border border-[#3b6550] bg-[#244b3b] p-6 text-[#f5efdf] shadow-[var(--shadow-md)]"><div className="flex items-center justify-between"><div className="section-label text-[#e5ae5d]">Kaaval Vizha</div><span className="rounded-full bg-[#315c48] px-2.5 py-1 text-[10px] text-[#bfd0c2]">22 Feb</span></div><h2 className="serif mt-10 text-4xl leading-[.96]">The ward walks together.</h2><p className="mt-4 text-sm leading-6 text-[#c4d2c5]">This Saturday, 18 nearby caretakers will verify the Lake Bund cluster. Bring your phone, your questions, and your honest eyes.</p><button onClick={() => setLocation('/verify')} className="mt-8 w-full rounded-xl bg-[#e5ae5d] px-4 py-3 text-sm font-extrabold text-[#193b31] transition hover:bg-[#f1c879]" data-testid="button-join-kaaval">Join the verification circle <ArrowRight size={15} className="ml-1 inline" /></button><div className="mt-5 flex items-center gap-2 text-xs text-[#a5beaa]"><Users size={14} /> 18 members already signed up</div></section></div><div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1fr_1fr]"><TrendCard /><TrustCard /><RecentActivity onSelect={(id) => setLocation(`/trees/${id}`)} /></div></AppShell>;
-}
-
-function TrendCard() {
-  const values = [68, 70, 74, 76, 73, 79, 82, 84];
-  return <section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)]"><div className="flex items-center justify-between"><div><div className="section-label text-[hsl(var(--accent))]">Survival trend</div><h2 className="serif mt-2 text-2xl">Verified survival</h2></div><span className="text-xs font-bold text-[#4d9b61]">+16 pts</span></div><div className="mt-7 flex h-28 items-end gap-2">{values.map((value, index) => <div key={value + index} className="flex flex-1 flex-col items-center gap-2"><div className="w-full rounded-t-md bg-[#b6cdae] transition hover:bg-[hsl(var(--primary))]" style={{ height: `${value}%` }} /><span className="mono text-[8px] text-[hsl(var(--muted-foreground))]">{['Jun', '', 'Aug', '', 'Oct', '', 'Dec', 'Feb'][index]}</span></div>)}</div><div className="mt-3 flex justify-between border-t border-[hsl(var(--border))] pt-3 text-xs text-[hsl(var(--muted-foreground))]"><span>Jun 2024</span><span>Feb 2025</span></div></section>;
-}
-
-function TrustCard() {
-  return <section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)]"><div className="flex items-center justify-between"><div><div className="section-label text-[hsl(var(--accent))]">Kuri health</div><h2 className="serif mt-2 text-2xl">Trust by group</h2></div><Link href="/groups/kuri-1" className="text-xs font-bold text-[hsl(var(--primary))]" data-testid="link-view-groups">View all</Link></div><div className="mt-6 space-y-4">{groups.map((group) => <Link href={`/groups/${group.id}`} key={group.id} className="block" data-testid={`link-group-${group.id}`}><div className="mb-1.5 flex justify-between text-xs"><span className="font-bold">{group.name}</span><span className="mono text-[hsl(var(--muted-foreground))]">{group.trustScore}</span></div><div className="h-2 overflow-hidden rounded-full bg-[hsl(var(--muted))]"><div className={`h-full rounded-full ${group.trustScore > 85 ? 'bg-[#4d9b61]' : 'bg-[#d28c27]'}`} style={{ width: `${group.trustScore}%` }} /></div></Link>)}</div></section>;
-}
-
-function RecentActivity({ onSelect }: { onSelect: (id: string) => void }) {
-  return <section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)]"><div className="flex items-center justify-between"><div><div className="section-label text-[hsl(var(--accent))]">Field notes</div><h2 className="serif mt-2 text-2xl">Recent activity</h2></div><button className="text-[hsl(var(--muted-foreground))]" data-testid="button-more-activity"><MoreHorizontal size={18} /></button></div><div className="mt-5 space-y-4">{[['NK-008', 'Muthu S. verified a new photo', '2h ago', 'verified'], ['NK-031', 'Parvathi R. accepted custody', '5h ago', 'healthy'], ['NK-013', 'The tree is waiting for a person', '9h ago', 'orphaned']].map(([id, text, time, status]) => <button key={id} onClick={() => onSelect(id)} className="flex w-full items-start gap-3 text-left" data-testid={`button-activity-${id}`}><span className="mt-1 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[hsl(var(--muted))] text-[hsl(var(--primary))]"><Leaf size={14} /></span><span className="flex-1"><span className="block text-xs font-bold">{text}</span><span className="mono mt-1 block text-[9px] text-[hsl(var(--muted-foreground))]">{time}</span></span><StatusPill status={status as TreeStatus} /></button>)}</div></section>;
-}
-
-function TreePassport() {
-  const { id } = useParams<{ id: string }>();
-  const tree = treeById(id ?? 'NK-008');
-  const [showEvidence, setShowEvidence] = useState(false);
-  return <AppShell><div className="animate-rise"><Link href="/dashboard" className="mb-7 inline-flex items-center gap-2 text-xs font-bold text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))]" data-testid="link-back-dashboard"><ArrowLeft size={14} />Back to ward overview</Link><div className="flex flex-wrap items-start justify-between gap-5"><div><div className="section-label flex items-center gap-2 text-[hsl(var(--accent))]"><TreePine size={13} />Tree passport / {tree.id}</div><h1 className="serif mt-3 text-5xl leading-[.9] tracking-[-.045em]">{tree.species}<span className="ml-3 text-[hsl(var(--muted-foreground))]">·</span><span className="ml-3 text-[hsl(var(--accent))]">{tree.id}</span></h1><div className="mt-4 flex flex-wrap items-center gap-3"><StatusPill status={tree.status} /><span className="flex items-center gap-1.5 text-xs text-[hsl(var(--muted-foreground))]"><MapPin size={13} />{tree.zone}, Nallur</span></div></div><div className="flex gap-2"><button onClick={() => setShowEvidence(!showEvidence)} className="rounded-xl border border-[hsl(var(--border))] px-4 py-2.5 text-xs font-bold hover:bg-[hsl(var(--muted))]" data-testid="button-toggle-evidence">{showEvidence ? 'Hide evidence' : 'View evidence'} <Video size={14} className="ml-2 inline" /></button><Link href="/handoff" className="rounded-xl bg-[hsl(var(--primary))] px-4 py-2.5 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid="link-passport-handoff">Transfer custody <ArrowRight size={14} className="ml-2 inline" /></Link></div></div><div className="mt-8 grid gap-5 xl:grid-cols-[.82fr_1.18fr]"><div className="space-y-5"><section className="rounded-2xl border border-[#ccd2bb] bg-[#dfe4cf] p-5"><div className="section-label text-[#52614f]">Planting coordinates</div><div className="map-surface relative mt-4 h-56 overflow-hidden rounded-xl border border-[#bbc5ac]"><span className="absolute left-[58%] top-[45%] grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-[#4d9b61]/20"><span className="grid h-6 w-6 place-items-center rounded-full border-2 border-[#f5efdf] bg-[#4d9b61] text-[#f5efdf]"><MapPin size={13} /></span></span><div className="absolute bottom-3 left-3 rounded-lg bg-[#f5efdf]/90 px-2.5 py-1.5 mono text-[9px] text-[#52614f]">{tree.coordinates[0].toFixed(4)}° N · {tree.coordinates[1].toFixed(4)}° E</div></div><div className="mt-4 flex justify-between text-xs"><span className="text-[hsl(var(--muted-foreground))]">Planted</span><strong>{formatDate(tree.plantedAt)}</strong></div></section><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)]"><div className="section-label text-[hsl(var(--accent))]">Current custodian</div><div className="mt-4 flex items-center gap-3"><Avatar name={tree.custodian === 'No current custodian' ? 'Waiting' : tree.custodian} size="md" /><div><div className="font-bold">{tree.custodian}</div><div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{tree.custodian === 'No current custodian' ? 'This tree needs someone to say yes.' : `${groupById(tree.group).name} · ${tree.zone}`}</div></div></div><div className="mt-5 border-t border-[hsl(var(--border))] pt-4 text-xs leading-5 text-[hsl(var(--muted-foreground))]">“I am {tree.species.toLowerCase()} tree {tree.id}. My next good day depends on one small promise kept today.”</div></section></div><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)] sm:p-7"><div className="flex items-center justify-between"><div><div className="section-label text-[hsl(var(--accent))]">The custody chain</div><h2 className="serif mt-2 text-3xl">A record of showing up</h2></div><span className="mono text-xs text-[hsl(var(--muted-foreground))]">{tree.checkpoints.length} checkpoints</span></div><div className="mt-8 space-y-0">{tree.custodyHistory.map((event, index) => <div key={event.date + event.to} className="relative flex gap-4 pb-7 last:pb-0"><div className="relative flex w-5 justify-center"><span className="z-10 grid h-5 w-5 place-items-center rounded-full border-4 border-[hsl(var(--card))] bg-[hsl(var(--primary))]"><span className="h-1.5 w-1.5 rounded-full bg-[#f5efdf]" /></span>{index < tree.custodyHistory.length - 1 && <span className="absolute top-5 h-full w-px bg-[#c7d6bc]" />}</div><div className="flex-1"><div className="flex flex-wrap justify-between gap-2"><span className="text-sm font-bold">{event.to}</span><span className="mono text-[10px] text-[hsl(var(--muted-foreground))]">{formatDate(event.date)}</span></div><p className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{event.reason} · from {event.from}</p></div></div>)}{tree.checkpoints.map((checkpoint, index) => <div key={checkpoint.date + index} className="relative flex gap-4 pb-7 last:pb-0"><div className="relative flex w-5 justify-center"><span className={`z-10 grid h-5 w-5 place-items-center rounded-full border-4 border-[hsl(var(--card))] ${checkpoint.status === 'verified' ? 'bg-[#4d9b61]' : checkpoint.status === 'mismatch' ? 'bg-[#d28c27]' : 'bg-[#9c967e]'}`}><Check size={10} className="text-[#f5efdf]" /></span>{index < tree.checkpoints.length - 1 && <span className="absolute top-5 h-full w-px bg-[#c7d6bc]" />}</div><div className="flex-1"><div className="flex flex-wrap items-center justify-between gap-2"><span className="text-sm font-bold">Checkpoint {index + 1}</span><span className="mono text-[10px] text-[hsl(var(--muted-foreground))]">{formatDate(checkpoint.date)}</span></div><div className="mt-1 flex flex-wrap items-center gap-2"><StatusPill status={checkpoint.status} /><span className="text-xs text-[hsl(var(--muted-foreground))]">by {checkpoint.verifier}</span></div><p className="mt-2 text-xs leading-5 text-[hsl(var(--muted-foreground))]">{checkpoint.note}</p>{showEvidence && <button onClick={() => alert(`Opening ${checkpoint.evidenceType} evidence for ${tree.id}`)} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-[hsl(var(--border))] px-3 py-2 text-[10px] font-bold hover:bg-[hsl(var(--muted))]" data-testid={`button-open-evidence-${index}`}>{checkpoint.evidenceType === 'video' ? <Video size={13} /> : <Flower2 size={13} />}Open {checkpoint.evidenceType} evidence <ArrowUpRight size={12} /></button>}</div></div>)}</div></section></div></div></AppShell>;
-}
-
-function Handoff() {
-  const [accepted, setAccepted] = useState(false);
-  const [shared, setShared] = useState(false);
-  const [nominee, setNominee] = useState('Asha P.');
-  return <AppShell notice={accepted ? 'Custody accepted. The tree has a new promise.' : undefined}><div className="mx-auto max-w-4xl animate-rise"><SectionHeading eyebrow="Live custody ceremony / NK-031" title={accepted ? 'The promise is held.' : 'A handoff in progress.'} detail={accepted ? 'Asha is now the named custodian for the next 90 days. The Kuri has been notified.' : 'One caretaker is stepping back. Another person is about to stand beside this tree.'} action={<Link href="/trees/NK-031" className="text-xs font-bold text-[hsl(var(--primary))]" data-testid="link-handoff-passport">View tree passport <ArrowRight size={14} className="ml-1 inline" /></Link>} /><div className={`overflow-hidden rounded-[28px] border ${accepted ? 'border-[#9fc193] bg-[#e9f1e3]' : 'border-[#3b6550] bg-[#244b3b]'} shadow-[var(--shadow-md)]`}><div className="flex flex-wrap items-center justify-between gap-4 border-b border-current/10 px-6 py-5 sm:px-10"><div className={`section-label ${accepted ? 'text-[#4d7f4d]' : 'text-[#e5ae5d]'}`}>{accepted ? 'Ceremony complete' : 'Waiting for successor'}</div>{!accepted && <div className="flex items-center gap-2 rounded-full bg-[#193b31] px-3 py-1.5 text-xs text-[#e5ae5d]"><span className="status-dot animate-breathe bg-[#e5ae5d]" />expires in <strong>08:42</strong></div>}</div><div className="grid gap-8 p-6 sm:p-10 lg:grid-cols-[1fr_.8fr]"><div><div className={`serif text-6xl leading-[.9] ${accepted ? 'text-[#193b31]' : 'text-[#f5efdf]'}`}>NK-031<br /><span className={accepted ? 'text-[#4d7f4d]' : 'text-[#9fbe92]'}>Jamun</span></div><p className={`mt-6 max-w-md text-sm leading-6 ${accepted ? 'text-[#52614f]' : 'text-[#c4d2c5]'}`}>{accepted ? 'I know who will look for me when the rain is late. Thank you for making my next season legible.' : 'I am ready for my next season. Will you take my morning watering, my guard checks, and my honest updates?'}</p><div className={`mt-8 rounded-2xl p-4 ${accepted ? 'bg-[#dbe9d4]' : 'bg-[#193b31]'}`}><div className={`section-label ${accepted ? 'text-[#4d7f4d]' : 'text-[#829c89]'}`}>Care summary / next 90 days</div><ul className={`mt-3 space-y-3 text-xs leading-5 ${accepted ? 'text-[#52614f]' : 'text-[#c4d2c5]'}`}><li><Check size={14} className="mr-2 inline text-[#4d9b61]" />Water every third morning before 9am</li><li><Check size={14} className="mr-2 inline text-[#4d9b61]" />Keep the soil ring loose and weed-free</li><li><Check size={14} className="mr-2 inline text-[#4d9b61]" />Upload one photo by 26 February</li></ul></div></div><div className={`rounded-2xl p-5 ${accepted ? 'bg-[#f8f4e9]' : 'bg-[#315c48]'}`}><div className={`section-label ${accepted ? 'text-[#b86743]' : 'text-[#a5beaa]'}`}>Custody transfer</div><div className="mt-6 flex items-center gap-3"><div className="text-center"><Avatar name="Parvathi S." size="md" /><div className={`mt-2 text-[10px] ${accepted ? 'text-[#52614f]' : 'text-[#c4d2c5]'}`}>Parvathi S.</div><div className="mono text-[9px] text-[#9c967e]">current</div></div><div className={`h-px flex-1 ${accepted ? 'bg-[#c7d6bc]' : 'bg-[#557462]'}`}><ArrowRight size={14} className={`float-right -mt-2 ${accepted ? 'text-[#4d7f4d]' : 'text-[#e5ae5d]'}`} /></div><div className="text-center"><Avatar name={accepted ? 'Asha P.' : nominee} size="md" /><div className={`mt-2 text-[10px] ${accepted ? 'text-[#52614f]' : 'text-[#c4d2c5]'}`}>{accepted ? 'Asha P.' : nominee}</div><div className="mono text-[9px] text-[#9c967e]">{accepted ? 'new custodian' : 'nominated'}</div></div></div>{accepted ? <div className="mt-10 space-y-3"><div className="flex items-center gap-3 rounded-xl bg-[#dbe9d4] p-3 text-xs font-bold text-[#2d673d]"><CheckCircle2 size={18} />Custody certificate minted</div><button onClick={() => setShared(true)} className="w-full rounded-xl bg-[#193b31] px-4 py-3 text-xs font-bold text-[#f5efdf]" data-testid="button-share-certificate">{shared ? 'Certificate link copied' : 'Share certificate'} <Upload size={14} className="ml-1 inline" /></button></div> : <div className="mt-8"><label className="section-label text-[#a5beaa]" htmlFor="nominee-select">Nominate successor</label><select id="nominee-select" value={nominee} onChange={(event) => setNominee(event.target.value)} className="mt-2 w-full rounded-xl border border-[#557462] bg-[#244b3b] px-3 py-3 text-sm text-[#f5efdf] outline-none" data-testid="select-successor"><option>Asha P.</option><option>Muthu S.</option><option>Naveen M.</option><option>Kavitha N.</option></select><button onClick={() => setAccepted(true)} className="mt-4 w-full rounded-xl bg-[#e5ae5d] px-4 py-3.5 text-sm font-extrabold text-[#193b31] transition hover:bg-[#f1c879]" data-testid="button-accept-custody">Accept custody <Check size={16} className="ml-1 inline" /></button><p className="mt-3 text-center text-[10px] leading-4 text-[#a5beaa]">By accepting, you become the accountable person for this tree's next checkpoint.</p></div>}</div></div></div></div></AppShell>;
-}
-
-function Verify() {
-  const queue = seedTrees.filter((tree) => tree.custodian !== 'Meena R.' && tree.status !== 'dead').slice(0, 8);
-  const [selectedId, setSelectedId] = useState(queue[0].id);
-  const [status, setStatus] = useState<'healthy' | 'at-risk' | ''>('');
-  const [note, setNote] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const selected = treeById(selectedId);
-  return <AppShell><div className="animate-rise"><SectionHeading eyebrow="Neighbourhood verification" title="Use your eyes, not their checkbox." detail="These trees are assigned to someone else. Your independent check is what turns a report into a trusted record." action={<span className="rounded-full bg-[#f7e4bd] px-3 py-2 text-xs font-bold text-[#8e5f18]">{queue.length} nearby trees waiting</span>} /><div className="grid gap-5 lg:grid-cols-[280px_1fr]"><aside className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-3 shadow-[var(--shadow-sm)]"><div className="mb-2 px-3 py-2 section-label text-[hsl(var(--muted-foreground))]">Your queue</div>{queue.map((tree) => <button key={tree.id} onClick={() => { setSelectedId(tree.id); setSubmitted(false); }} className={`mb-1 w-full rounded-xl p-3 text-left transition ${selectedId === tree.id ? 'bg-[#dbe9d4]' : 'hover:bg-[hsl(var(--muted))]'}`} data-testid={`button-verify-tree-${tree.id}`}><div className="flex items-center justify-between"><span className="text-sm font-bold">{tree.id}</span><StatusPill status={tree.status} /></div><div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{tree.species} · {tree.zone}</div></button>)}</aside><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-5 shadow-[var(--shadow-sm)] sm:p-7"><div className="flex flex-wrap items-start justify-between gap-4 border-b border-[hsl(var(--border))] pb-5"><div><div className="section-label text-[hsl(var(--accent))]">Comparing evidence</div><h2 className="serif mt-2 text-4xl">{selected.species} <span className="text-[hsl(var(--muted-foreground))]">{selected.id}</span></h2><p className="mt-2 text-xs text-[hsl(var(--muted-foreground))]">Assigned to {selected.custodian} · last checkpoint {formatDate(selected.checkpoints.at(-1)?.date ?? selected.plantedAt)}</p></div><span className="rounded-lg bg-[hsl(var(--muted))] px-3 py-2 text-xs font-bold"><MapPin size={13} className="mr-1 inline" />{selected.zone}</span></div><div className="mt-6 grid gap-4 sm:grid-cols-2"><div className="rounded-xl border border-[hsl(var(--border))] p-4"><div className="section-label text-[hsl(var(--muted-foreground))]">Previous evidence</div><div className="mt-4 flex h-36 items-center justify-center rounded-lg bg-[#dfe4cf]"><div className="text-center text-[#52614f]"><Flower2 size={26} className="mx-auto" /><div className="mt-2 text-xs font-bold">{selected.checkpoints.at(-1)?.evidenceType} · {formatDate(selected.checkpoints.at(-1)?.date ?? selected.plantedAt)}</div></div></div><p className="mt-3 text-xs leading-5 text-[hsl(var(--muted-foreground))]">{selected.checkpoints.at(-1)?.note}</p></div><button onClick={() => alert('Camera and gallery affordance opened for demo')} className="flex h-full min-h-[215px] flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#b8c6af] bg-[#f0f3e8] p-4 text-center transition hover:border-[hsl(var(--primary))] hover:bg-[#e7efe1]" data-testid="button-upload-evidence"><span className="grid h-12 w-12 place-items-center rounded-full bg-[#dbe9d4] text-[#2d673d]"><Upload size={20} /></span><span className="mt-3 text-sm font-bold text-[#315c48]">Add your evidence</span><span className="mt-1 text-xs text-[#71806d]">Photo or 10 sec video from the field</span></button></div>{submitted ? <div className="mt-6 rounded-2xl border border-[#9fc193] bg-[#e9f1e3] p-5"><div className="flex items-center gap-3 text-[#2d673d]"><CheckCircle2 size={21} /><span className="font-bold">Comparison submitted.</span></div><p className="mt-2 text-sm leading-6 text-[#52614f]">Your {status} report is now visible to {selected.custodian} and the {groupById(selected.group).name}. Thank you for lending your eyes.</p><button onClick={() => setSubmitted(false)} className="mt-4 text-xs font-bold text-[#2d673d]" data-testid="button-edit-verification">Edit report</button></div> : <div className="mt-6"><div className="section-label text-[hsl(var(--accent))]">What do you see today?</div><div className="mt-3 flex flex-wrap gap-2">{(['healthy', 'at-risk'] as const).map((option) => <button key={option} onClick={() => setStatus(option)} className={`rounded-xl border px-4 py-3 text-sm font-bold ${status === option ? option === 'healthy' ? 'border-[#4d9b61] bg-[#dbe9d4] text-[#2d673d]' : 'border-[#d28c27] bg-[#f7e4bd] text-[#8e5f18]' : 'border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]'}`} data-testid={`button-status-${option}`}>{option === 'healthy' ? <CheckCircle2 size={16} className="mr-2 inline" /> : <CircleAlert size={16} className="mr-2 inline" />}{option === 'healthy' ? 'Looks healthy' : 'Needs attention'}</button>)}</div><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Add an honest field note (optional)" className="mt-4 min-h-24 w-full resize-none rounded-xl border border-[hsl(var(--border))] bg-transparent p-3 text-sm outline-none focus:ring-2 focus:ring-[hsl(var(--ring))]" data-testid="textarea-verification-note" /><div className="mt-4 flex justify-end"><button disabled={!status} onClick={() => setSubmitted(true)} className="rounded-xl bg-[hsl(var(--primary))] px-5 py-3 text-sm font-bold text-[hsl(var(--primary-foreground))] disabled:cursor-not-allowed disabled:opacity-40" data-testid="button-submit-verification">Submit comparison <ArrowRight size={15} className="ml-1 inline" /></button></div></div>}</section></div></div></AppShell>;
-}
-
-function GroupView() {
-  const { id } = useParams<{ id: string }>();
-  const group = groupById(id ?? 'kuri-1');
-  const trees = seedTrees.filter((tree) => tree.group === group.id);
-  return <AppShell><div className="animate-rise"><Link href="/dashboard" className="mb-7 inline-flex items-center gap-2 text-xs font-bold text-[hsl(var(--muted-foreground))]" data-testid="link-back-group-dashboard"><ArrowLeft size={14} />Back to overview</Link><SectionHeading eyebrow="Kuri group / collective accountability" title={group.name} detail={`${group.zone} · a small circle that keeps a bigger promise.`} action={<button onClick={() => navigator.clipboard?.writeText(`vanamkuri.app/groups/${group.id}`)} className="rounded-xl border border-[hsl(var(--border))] px-4 py-3 text-xs font-bold" data-testid="button-share-group">Share group <Upload size={14} className="ml-1 inline" /></button>} /><div className="grid gap-5 lg:grid-cols-[.8fr_1.2fr]"><section className="rounded-[24px] bg-[#244b3b] p-6 text-[#f5efdf] shadow-[var(--shadow-md)] sm:p-8"><div className="section-label text-[#e5ae5d]">Collective trust</div><div className="mt-6 flex items-end gap-3"><span className="serif text-8xl leading-none text-[#e5ae5d]">{group.trustScore}</span><span className="mb-2 text-sm text-[#b7c7b9]">/ 100<br />trust points</span></div><div className="mt-6 h-3 rounded-full bg-[#315c48]"><div className="h-full rounded-full bg-[#e5ae5d]" style={{ width: `${group.trustScore}%` }} /></div><p className="mt-6 max-w-sm text-sm leading-6 text-[#c4d2c5]">“We verify each other's work, so no tree is left alone with a green tick.”</p><div className="mt-8 grid grid-cols-2 gap-3 border-t border-[#557462] pt-5"><div><div className="mono text-2xl text-[#f5efdf]">{trees.length}</div><div className="mt-1 text-[10px] text-[#a5beaa]">trees in cluster</div></div><div><div className="mono text-2xl text-[#f5efdf]">{group.checkpointCount}</div><div className="mt-1 text-[10px] text-[#a5beaa]">verified checkpoints</div></div></div></section><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)]"><div className="flex items-center justify-between"><div><div className="section-label text-[hsl(var(--accent))]">The circle</div><h2 className="serif mt-2 text-3xl">People who show up</h2></div><span className="rounded-full bg-[#dbe9d4] px-3 py-1.5 text-xs font-bold text-[#2d673d]">{group.members.length} members</span></div><div className="mt-6 grid gap-3 sm:grid-cols-2">{group.members.map((member, index) => <div key={member} className="flex items-center gap-3 rounded-xl border border-[hsl(var(--border))] p-3"><Avatar name={member} size="md" /><div className="flex-1"><div className="text-sm font-bold">{member}</div><div className="mt-1 text-[10px] text-[hsl(var(--muted-foreground))]">{index === 0 ? 'circle lead' : 'caretaker'} · {12 + index * 3} checks</div></div><CheckCircle2 size={16} className="text-[#4d9b61]" /></div>)}</div></section></div><div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_.9fr]"><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)]"><div className="section-label text-[hsl(var(--accent))]">Cluster accountability</div><h2 className="serif mt-2 text-3xl">Trees in this Kuri</h2><div className="mt-5 divide-y divide-[hsl(var(--border))]">{trees.slice(0, 8).map((tree) => <Link href={`/trees/${tree.id}`} key={tree.id} className="flex items-center gap-3 py-3" data-testid={`link-group-tree-${tree.id}`}><span className="grid h-8 w-8 place-items-center rounded-lg bg-[#dbe9d4] text-[#2d673d]"><TreePine size={15} /></span><span className="flex-1"><span className="block text-sm font-bold">{tree.id} · {tree.species}</span><span className="mt-1 block text-xs text-[hsl(var(--muted-foreground))]">{tree.custodian}</span></span><StatusPill status={tree.status} /><ChevronRight size={15} className="text-[hsl(var(--muted-foreground))]" /></Link>)}</div></section><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)]"><div className="section-label text-[hsl(var(--accent))]">Payout history</div><h2 className="serif mt-2 text-3xl">Trust, returned</h2><div className="mt-5 space-y-4">{group.payoutHistory.map((payout) => <div key={payout.month} className="flex items-center justify-between border-b border-[hsl(var(--border))] pb-4"><div><div className="text-sm font-bold">{payout.month} 2025</div><div className="mt-1 text-xs text-[hsl(var(--muted-foreground))]">{payout.note}</div></div><span className="mono text-sm text-[#2d673d]">{payout.amount}</span></div>)}</div><p className="mt-5 text-xs leading-5 text-[hsl(var(--muted-foreground))]">Payouts unlock when a nearby verifier confirms the checkpoint. No one is paid for a promise alone.</p></section></div></div></AppShell>;
-}
-
-function RiskQueue() {
-  const [risks, setRisks] = useState(seedRisks);
-  const [resolved, setResolved] = useState<string[]>([]);
-  const actionRisk = (risk: RiskItem, action: 'reassign' | 'escalate') => { setResolved((current) => [...current, risk.id]); setRisks((current) => current.filter((item) => item.id !== risk.id)); };
-  return <AppShell><div className="animate-rise"><SectionHeading eyebrow="Admin control room" title="What cannot wait." detail="Escalations are not punishments. They are how a ward notices when a tree has slipped through the human cracks." action={<span className="rounded-full bg-[#f6ddd0] px-3 py-2 text-xs font-bold text-[#974a2e]">{risks.length} open risks</span>} /><div className="mb-5 grid gap-4 sm:grid-cols-3"><MetricCard label="High attention" value={`${risks.filter((risk) => risk.severity === 'high').length}`} note="needs action today" accent="terracotta" icon={CircleAlert} /><MetricCard label="Reassignment ready" value="2" note="nearby caretakers available" accent="gold" icon={Users} /><MetricCard label="Resolved this month" value="11" note="+3 from January" icon={CheckCircle2} /></div><section className="overflow-hidden rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] shadow-[var(--shadow-sm)]"><div className="hidden grid-cols-[.8fr_1fr_1.8fr_1fr] gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--muted))] px-5 py-3 sm:grid"><span className="section-label text-[hsl(var(--muted-foreground))]">Signal</span><span className="section-label text-[hsl(var(--muted-foreground))]">Tree</span><span className="section-label text-[hsl(var(--muted-foreground))]">What the tree says</span><span className="section-label text-[hsl(var(--muted-foreground))]">Action</span></div>{risks.map((risk) => <div key={risk.id} className="grid gap-3 border-b border-[hsl(var(--border))] px-5 py-5 sm:grid-cols-[.8fr_1fr_1.8fr_1fr] sm:items-center"><div><StatusPill status={risk.type === 'mismatch' ? 'mismatch' : risk.type === 'missed checkpoint' ? 'missed' : 'orphaned'} /><div className="mt-2 mono text-[9px] text-[hsl(var(--muted-foreground))]">{risk.severity} priority</div></div><Link href={`/trees/${risk.treeId}`} className="text-sm font-bold text-[hsl(var(--primary))]" data-testid={`link-risk-tree-${risk.treeId}`}>{risk.treeId} <ArrowUpRight size={13} className="ml-1 inline" /></Link><p className="text-xs leading-5 text-[hsl(var(--muted-foreground))]">{risk.description}</p><div className="flex gap-2"><button onClick={() => actionRisk(risk, 'reassign')} className="rounded-lg bg-[#dbe9d4] px-3 py-2 text-[10px] font-bold text-[#2d673d]" data-testid={`button-reassign-${risk.id}`}>Reassign</button><button onClick={() => actionRisk(risk, 'escalate')} className="rounded-lg border border-[hsl(var(--border))] px-3 py-2 text-[10px] font-bold" data-testid={`button-escalate-${risk.id}`}>Escalate</button></div></div>)}{risks.length === 0 && <div className="p-12 text-center"><CheckCircle2 size={30} className="mx-auto text-[#4d9b61]" /><h3 className="serif mt-4 text-2xl">The queue is clear for now.</h3><p className="mt-2 text-sm text-[hsl(var(--muted-foreground))]">Every risk has a next human action. That is a good field day.</p></div>}</section>{resolved.length > 0 && <div className="mt-4 rounded-xl bg-[#dbe9d4] px-4 py-3 text-xs font-bold text-[#2d673d]" data-testid="text-risk-success"><CheckCircle2 size={15} className="mr-2 inline" />{resolved.length} risk{resolved.length > 1 ? 's' : ''} moved to the action log.</div>}</div></AppShell>;
-}
-
-function Autopsy() {
-  const [cause, setCause] = useState('');
-  const [kind, setKind] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  return <AppShell><div className="mx-auto max-w-4xl animate-rise"><SectionHeading eyebrow="Failure autopsy / NK-020" title="A death should teach the ward." detail="No blame. No quiet deletion. We record what happened so the next Jamun on Market Lane inherits better care." /><div className="grid gap-5 lg:grid-cols-[.8fr_1.2fr]"><section className="rounded-[24px] bg-[#244b3b] p-6 text-[#f5efdf] sm:p-8"><div className="section-label text-[#e5ae5d]">Tree NK-020</div><div className="serif mt-8 text-6xl leading-[.9]">Jamun<br /><span className="text-[#f08e62]">did not make it.</span></div><div className="mt-8 space-y-4 border-t border-[#557462] pt-5 text-xs text-[#c4d2c5]"><div className="flex justify-between"><span>Planted</span><strong className="text-[#f5efdf]">4 Jun 2024</strong></div><div className="flex justify-between"><span>Zone</span><strong className="text-[#f5efdf]">Market Lane</strong></div><div className="flex justify-between"><span>Last verified</span><strong className="text-[#f5efdf]">29 Jan 2025</strong></div></div><p className="mt-8 text-sm leading-6 text-[#c4d2c5]">“I was visible from the tea stall, but nobody knew who was responsible for my last watering.”</p></section>{submitted ? <section className="rounded-2xl border border-[#9fc193] bg-[#e9f1e3] p-6 sm:p-8"><CheckCircle2 size={26} className="text-[#4d7f4d]" /><h2 className="serif mt-6 text-4xl text-[#193b31]">The ward will remember.</h2><p className="mt-4 text-sm leading-6 text-[#52614f]">Autopsy filed for NK-020. A same-zone insight has been added: Market Lane trees with unverified watering were 2.4× more likely to fail.</p><Link href="/impact" className="mt-7 inline-block rounded-xl bg-[#193b31] px-4 py-3 text-xs font-bold text-[#f5efdf]" data-testid="link-autopsy-impact">See reliability report <ArrowRight size={14} className="ml-1 inline" /></Link></section> : <section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)] sm:p-8"><div className="section-label text-[hsl(var(--accent))]">What happened?</div><div className="mt-5 space-y-5"><fieldset><legend className="text-sm font-bold">Likely cause</legend><div className="mt-3 grid gap-2 sm:grid-cols-2">{['Missed watering', 'Animal damage', 'Soil / drainage', 'Unknown'].map((item) => <button key={item} onClick={() => setCause(item)} className={`rounded-xl border px-3 py-3 text-left text-xs ${cause === item ? 'border-[#b86743] bg-[#f6ddd0] text-[#974a2e]' : 'border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]'}`} data-testid={`button-cause-${item.toLowerCase().replaceAll(' ', '-')}`}>{cause === item ? <Check size={14} className="mr-2 inline" /> : <CircleDot size={14} className="mr-2 inline text-[hsl(var(--muted-foreground))]" />}{item}</button>)}</div></fieldset><fieldset><legend className="text-sm font-bold">Where did the break happen?</legend><div className="mt-3 space-y-2">{['Custodial — a care promise was missed', 'Systemic — the ward made care too hard'].map((item) => <button key={item} onClick={() => setKind(item)} className={`w-full rounded-xl border px-3 py-3 text-left text-xs ${kind === item ? 'border-[#b86743] bg-[#f6ddd0] text-[#974a2e]' : 'border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]'}`} data-testid={`button-kind-${item.slice(0, 8).toLowerCase()}`}>{kind === item ? <Check size={14} className="mr-2 inline" /> : <CircleDot size={14} className="mr-2 inline text-[hsl(var(--muted-foreground))]" />}{item}</button>)}</div></fieldset><textarea placeholder="What should the next Kuri know?" className="min-h-24 w-full resize-none rounded-xl border border-[hsl(var(--border))] bg-transparent p-3 text-sm outline-none" data-testid="textarea-autopsy-note" /><button disabled={!cause || !kind} onClick={() => setSubmitted(true)} className="w-full rounded-xl bg-[hsl(var(--primary))] px-4 py-3.5 text-sm font-bold text-[hsl(var(--primary-foreground))] disabled:opacity-40" data-testid="button-submit-autopsy">File the autopsy <FileCheck2 size={15} className="ml-1 inline" /></button></div></section>}</div></div></AppShell>;
-}
-
-function Impact() {
-  const [downloaded, setDownloaded] = useState(false);
-  return <AppShell><div className="animate-rise"><SectionHeading eyebrow="Reliability report / Nallur ward" title="The story behind the number." detail="A report that counts what was checked, what was learned, and where the next promise should go." action={<button onClick={() => setDownloaded(true)} className="rounded-xl bg-[hsl(var(--primary))] px-4 py-3 text-xs font-bold text-[hsl(var(--primary-foreground))]" data-testid="button-download-report"><Download size={15} className="mr-2 inline" />{downloaded ? 'Summary saved' : 'Download summary'}</button>} /><div className="grid gap-5 lg:grid-cols-[1.35fr_.65fr]"><section className="rounded-[24px] bg-[#244b3b] p-6 text-[#f5efdf] shadow-[var(--shadow-md)] sm:p-9"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="section-label text-[#e5ae5d]">June 2024 — February 2025</div><h2 className="serif mt-3 text-5xl leading-[.9]">A more honest<br /><span className="text-[#e5ae5d]">green story.</span></h2></div><HeartPulse size={30} className="text-[#e5ae5d]" /></div><div className="mt-12 grid gap-7 sm:grid-cols-2"><div><div className="mono text-5xl">84.6</div><div className="mt-2 text-xs text-[#a5beaa]">ward reliability score</div><div className="mt-4 h-2 rounded-full bg-[#315c48]"><div className="h-full w-[84.6%] rounded-full bg-[#e5ae5d]" /></div></div><div><div className="mono text-5xl">74%</div><div className="mt-2 text-xs text-[#a5beaa]">verified survival</div><div className="mt-4 h-2 rounded-full bg-[#315c48]"><div className="h-full w-[74%] rounded-full bg-[#f08e62]" /></div></div></div><div className="mt-10 border-t border-[#557462] pt-5 text-sm leading-6 text-[#c4d2c5]">Reliability rose every time a caretaker and a neighbour shared the same view of a tree.</div></section><section className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)]"><div className="section-label text-[hsl(var(--accent))]">The gap we close</div><h2 className="serif mt-3 text-3xl">Report vs reality</h2><div className="mt-8 space-y-8"><div><div className="flex justify-between text-sm"><span>Self-reported</span><strong>91%</strong></div><div className="mt-2 h-3 rounded-full bg-[hsl(var(--muted))]"><div className="h-full w-[91%] rounded-full bg-[#9c967e]" /></div></div><div><div className="flex justify-between text-sm"><span>Verified alive</span><strong className="text-[#2d673d]">74%</strong></div><div className="mt-2 h-3 rounded-full bg-[hsl(var(--muted))]"><div className="h-full w-[74%] rounded-full bg-[#4d9b61]" /></div></div><div><div className="flex justify-between text-sm"><span>Autopsies filed</span><strong className="text-[#974a2e]">100%</strong></div><div className="mt-2 h-3 rounded-full bg-[hsl(var(--muted))]"><div className="h-full w-full rounded-full bg-[#b86743]" /></div></div></div><div className="mt-9 rounded-xl bg-[#f7e4bd] p-4 text-xs leading-5 text-[#76531a]"><CircleAlert size={15} className="mr-2 inline" />The gap is visible now. That is where action starts.</div></section></div><div className="mt-5 grid gap-5 md:grid-cols-3"><ReportCard title="45" label="trees planted" note="across five Nallur zones" icon={Sprout} /><ReportCard title="132" label="verified checkpoints" note="with photo, video, or note evidence" icon={ShieldCheck} /><ReportCard title="18" label="people in the circle" note="neighbours holding the line together" icon={Users} /></div>{downloaded && <div className="mt-5 rounded-xl border border-[#9fc193] bg-[#e9f1e3] px-4 py-3 text-xs font-bold text-[#2d673d]" data-testid="text-download-success"><CheckCircle2 size={15} className="mr-2 inline" />Nallur reliability summary is ready to share.</div>}</div></AppShell>;
-}
-
-function ReportCard({ title, label, note, icon: Icon }: { title: string; label: string; note: string; icon: typeof Sprout }) {
-  return <div className="rounded-2xl border border-[hsl(var(--card-border))] bg-[hsl(var(--card))] p-6 shadow-[var(--shadow-sm)]"><span className="grid h-9 w-9 place-items-center rounded-lg bg-[#dbe9d4] text-[#2d673d]"><Icon size={17} /></span><div className="serif mt-7 text-5xl">{title}</div><div className="mt-1 text-sm font-bold">{label}</div><p className="mt-2 text-xs leading-5 text-[hsl(var(--muted-foreground))]">{note}</p></div>;
-}
-
-function Router() {
-  return <Switch><Route path="/" component={Landing} /><Route path="/dashboard" component={Dashboard} /><Route path="/trees/:id" component={TreePassport} /><Route path="/handoff" component={Handoff} /><Route path="/verify" component={Verify} /><Route path="/groups/:id" component={GroupView} /><Route path="/risk" component={RiskQueue} /><Route path="/autopsy" component={Autopsy} /><Route path="/impact" component={Impact} /><Route component={NotFound} /></Switch>;
-}
-
-function App() {
-  return <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}><Router /></WouterRouter>;
-}
-
-export default App;
