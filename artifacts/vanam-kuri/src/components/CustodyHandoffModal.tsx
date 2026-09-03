@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Tree, CustodyRecord } from '../types/custodia';
+import { custodyService } from '../services/custodyService';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { eligibleCustodians } from '../data/mockData';
 import confetti from 'canvas-confetti';
 import { 
@@ -40,8 +42,17 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleExecuteHandoff = () => {
+  const handleExecuteHandoff = async () => {
     setIsTransferring(true);
+    
+    try {
+      if (isSupabaseConfigured()) {
+        await custodyService.initiateHandoff(tree.id, 'dummy-previous-id', handoffReason);
+      }
+    } catch (error) {
+      console.error("Failed to handoff via Supabase", error);
+    }
+
     setTimeout(() => {
       setIsTransferring(false);
       setStep('success');

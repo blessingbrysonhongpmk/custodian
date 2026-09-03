@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Tree, CheckpointStatus, EvidenceConsistency } from '../types/custodia';
+import { checkpointService } from '../services/checkpointService';
+import { isSupabaseConfigured } from '../lib/supabase';
 import { 
   Camera, 
   CheckCircle2, 
@@ -62,8 +64,22 @@ export const PeerVerificationModal: React.FC<PeerVerificationModalProps> = ({
     }, 800);
   };
 
-  const handleSubmitVerification = () => {
+  const handleSubmitVerification = async () => {
     setIsSubmitting(true);
+    
+    try {
+      if (isSupabaseConfigured()) {
+        await checkpointService.submitCheckpoint(tree.id, {
+          photoUrl: capturedPhoto,
+          health_status: selectedVerdict,
+          verification_status: 'verified',
+          notes: verifierNotes,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to submit checkpoint via Supabase", error);
+    }
+
     setTimeout(() => {
       setIsSubmitting(false);
       onVerificationSubmitted(tree.id, selectedVerdict, anomalyScore, verifierNotes);

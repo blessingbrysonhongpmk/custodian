@@ -15,11 +15,16 @@ import {
   pilotTree 
 } from './data/mockData';
 
-import { treesApi, dashboardApi, risksApi, notificationsApi, demoApi } from './lib/api';
+import { treesApi, dashboardApi, demoApi } from './lib/api';
+import { isSupabaseConfigured } from './lib/supabase';
+import { treeService } from './services/treeService';
+import { riskService } from './services/riskService';
+import { notificationService } from './services/notificationService';
 
 // Components
-import { Navbar } from './components/Navbar';
+import { Sidebar } from './components/Sidebar';
 import { DemoScenarioRunner } from './components/DemoScenarioRunner';
+import { VerificationQueueView } from './components/VerificationQueueView';
 import { DashboardView } from './components/DashboardView';
 import { TreePassportView } from './components/TreePassportView';
 import { InteractiveMap } from './components/InteractiveMap';
@@ -91,30 +96,45 @@ export default function App() {
     }
 
     try {
-      const risksData = await risksApi.list();
-      if (risksData.risks && risksData.risks.length > 0) {
-        setRiskItems(risksData.risks.map((r: any) => ({
-          id: `RISK-${r.id}`,
-          treeId: r.tree?.treeCode || `Tree-${r.treeId}`,
-          treeSpecies: r.tree?.species || "Unknown",
-          zone: r.tree?.zone || "Unknown",
-          landmark: r.tree?.landmark || "",
-          status: r.riskType === "no_custodian" ? "orphaned" : "at-risk" as any,
-          severity: r.severity,
-          title: r.reason?.split(".")[0] || "Risk Event",
-          reason: r.reason,
-          daysOverdue: 0,
-          custodianName: r.custodian?.name || "Unassigned",
-          actionRequired: r.suggestedAction || "Review required",
-          suggestedActionType: r.riskType === "no_custodian" ? "REASSIGN" : "VERIFY" as any,
-        })));
+      if (isSupabaseConfigured()) {
+        const supabaseTrees = await treeService.getTrees();
+        if (supabaseTrees.length > 0) {
+          setTrees(supabaseTrees);
+        }
+      }
+    } catch {
+      console.log("Supabase tree fetch failed, using mock trees.");
+    }
+
+    try {
+      if (isSupabaseConfigured()) {
+        const risksData = await riskService.getRisks();
+        if (risksData && risksData.length > 0) {
+          setRiskItems(risksData.map((r: any) => ({
+            id: `RISK-${r.id}`,
+            treeId: r.trees?.tree_code || `Tree-${r.tree_id}`,
+            treeSpecies: r.trees?.species || "Unknown",
+            zone: "Campus",
+            landmark: "",
+            status: r.risk_type === "no_custodian" ? "orphaned" : "at-risk" as any,
+            severity: r.severity,
+            title: r.reason?.split(".")[0] || "Risk Event",
+            reason: r.reason,
+            daysOverdue: 0,
+            custodianName: r.profiles?.name || "Unassigned",
+            actionRequired: "Review required",
+            suggestedActionType: r.risk_type === "no_custodian" ? "REASSIGN" : "VERIFY" as any,
+          })));
+        }
       }
     } catch { /* keep mock */ }
 
     try {
-      const notifData = await notificationsApi.list();
-      if (notifData.notifications) {
-        setNotifications(notifData.notifications);
+      if (isSupabaseConfigured()) {
+        const notifData = await notificationService.getNotifications();
+        if (notifData && notifData.length > 0) {
+          setNotifications(notifData);
+        }
       }
     } catch { /* ignore */ }
   }, []);
@@ -173,6 +193,18 @@ export default function App() {
         await demoApi.timeTravel(actions[stepIndex] || "today");
         await loadFromApi();
       } catch { /* ignore */ }
+    }
+  };
+
+  // Role Selection Handler
+  const handleSelectRole = (role: ActiveRole) => {
+    setActiveRole(role);
+    if (role === 'ADMIN') {
+      setActiveTab('dashboard');
+    } else if (role === 'CUSTODIAN') {
+      setActiveTab('custodian-view');
+    } else if (role === 'PEER_VERIFIER') {
+      setActiveTab('verification-queue');
     }
   };
 
@@ -265,7 +297,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-900 flex flex-col leaf-grid-bg antialiased">
+    <div className="h-screen bg-[#fcfbf9] text-slate-900 flex flex-row antialiased overflow-hidden">
       {/* Top Floating Notification Toast */}
       {notificationToast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl border border-emerald-400 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
@@ -274,30 +306,31 @@ export default function App() {
         </div>
       )}
 
-      {/* API Connection Status */}
-      {!apiConnected && (
-        <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-1.5 px-4 font-medium">
-          📡 Running with demo data — Start the API server ({`pnpm run dev:api`}) and database for live data
-        </div>
-      )}
-
-      {/* Main Navbar */}
-      <Navbar
+      {/* Main Sidebar */}
+      <Sidebar
         activeTab={activeTab}
         onSelectTab={(tab) => setActiveTab(tab)}
         activeRole={activeRole}
-        onSelectRole={(role) => setActiveRole(role)}
+        onSelectRole={handleSelectRole}
         onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
         riskCount={riskItems.length}
       />
 
       {/* Main Content Body */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 space-y-5">
-        {/* 3-Minute Hackathon Demo Script Bar */}
-        <DemoScenarioRunner
-          currentStep={demoStep}
-          onStepChange={handleDemoStepChange}
-        />
+      <main className="flex-1 min-w-0 overflow-y-auto relative">
+        {/* API Connection Status */}
+        {!apiConnected && (
+          <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-1.5 px-4 font-medium sticky top-0 z-10">
+            📡 Running with demo data — Start the API server ({`pnpm run dev:api`}) and database for live data
+          </div>
+        )}
+
+        <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+          {/* 3-Minute Hackathon Demo Script Bar */}
+          <DemoScenarioRunner
+            currentStep={demoStep}
+            onStepChange={handleDemoStepChange}
+          />
 
         {/* Tab 1: Executive Organization Dashboard */}
         {activeTab === 'dashboard' && (
@@ -376,6 +409,19 @@ export default function App() {
             }}
             onOpenHandoff={(tree) => setHandoffModalTree(tree)}
             onOpenVerification={(tree) => setVerificationModalTree(tree)}
+            simulatedCustodian="Arun K."
+          />
+        )}
+
+        {/* Tab 8: Peer Verifier Queue */}
+        {activeTab === 'verification-queue' && (
+          <VerificationQueueView
+            trees={trees}
+            onOpenTree={(id) => {
+              setSelectedTreeId(id);
+              setActiveTab('passport');
+            }}
+            onOpenVerification={(tree) => setVerificationModalTree(tree)}
           />
         )}
 
@@ -386,54 +432,55 @@ export default function App() {
             trees={trees}
           />
         )}
-      </main>
 
-      {/* MODALS */}
-      {handoffModalTree && (
-        <CustodyHandoffModal
-          tree={handoffModalTree}
-          isOpen={!!handoffModalTree}
-          onClose={() => setHandoffModalTree(null)}
-          onHandoffSuccess={handleHandoffSuccess}
-        />
-      )}
+        {/* Footer */}
+        <footer className="mt-16 py-8 border-t border-slate-200/60 text-xs text-slate-400 text-center space-y-1">
+          <p className="font-semibold text-slate-500">
+            TREEGUARD • Every tree has a caretaker. Every caretaker has a successor.
+          </p>
+          <p>
+            No tree left behind. • AI-assisted verification. Human accountability.
+          </p>
+        </footer>
+      </div>
+    </main>
 
-      {verificationModalTree && (
-        <PeerVerificationModal
-          tree={verificationModalTree}
-          isOpen={!!verificationModalTree}
-          onClose={() => setVerificationModalTree(null)}
-          onVerificationSubmitted={handleVerificationSubmitted}
-        />
-      )}
+    {/* MODALS */}
+    {handoffModalTree && (
+      <CustodyHandoffModal
+        tree={handoffModalTree}
+        isOpen={!!handoffModalTree}
+        onClose={() => setHandoffModalTree(null)}
+        onHandoffSuccess={handleHandoffSuccess}
+      />
+    )}
 
-      {autopsyModalTree && (
-        <FailureAutopsyModal
-          tree={autopsyModalTree}
-          isOpen={!!autopsyModalTree}
-          onClose={() => setAutopsyModalTree(null)}
-          onAutopsySaved={handleAutopsySaved}
-        />
-      )}
+    {verificationModalTree && (
+      <PeerVerificationModal
+        tree={verificationModalTree}
+        isOpen={!!verificationModalTree}
+        onClose={() => setVerificationModalTree(null)}
+        onVerificationSubmitted={handleVerificationSubmitted}
+      />
+    )}
 
-      {isRegisterModalOpen && (
-        <RegisterTreeModal
-          isOpen={isRegisterModalOpen}
-          onClose={() => setIsRegisterModalOpen(false)}
-          onTreeRegistered={handleTreeRegistered}
-          existingCount={trees.length}
-        />
-      )}
+    {autopsyModalTree && (
+      <FailureAutopsyModal
+        tree={autopsyModalTree}
+        isOpen={!!autopsyModalTree}
+        onClose={() => setAutopsyModalTree(null)}
+        onAutopsySaved={handleAutopsySaved}
+      />
+    )}
 
-      {/* Footer */}
-      <footer className="mt-12 py-6 border-t border-slate-200/80 bg-white text-xs text-slate-500 text-center space-y-1">
-        <p className="font-semibold text-slate-800">
-          TREEGUARD • Every tree has a caretaker. Every caretaker has a successor.
-        </p>
-        <p>
-          No tree left behind. • AI-assisted verification. Human accountability.
-        </p>
-      </footer>
-    </div>
+    {isRegisterModalOpen && (
+      <RegisterTreeModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
+        onTreeRegistered={handleTreeRegistered}
+        existingCount={trees.length}
+      />
+    )}
+  </div>
   );
 }

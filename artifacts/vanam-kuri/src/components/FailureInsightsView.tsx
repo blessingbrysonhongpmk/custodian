@@ -2,17 +2,14 @@ import React from 'react';
 import { failureCausesStats } from '../data/mockData';
 import { Tree } from '../types/custodia';
 import { 
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell
+} from 'recharts';
+import { 
   AlertOctagon, 
-  Droplets, 
-  ShieldAlert, 
-  UserX, 
-  Bug, 
   Lightbulb, 
-  BarChart3, 
-  TrendingDown, 
-  MapPin, 
   ArrowRight,
-  Eye
+  TrendingDown,
+  Info
 } from 'lucide-react';
 
 interface FailureInsightsViewProps {
@@ -31,116 +28,115 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="bg-white rounded-3xl border border-rose-100 p-6 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-full text-xs font-mono font-bold bg-rose-100 text-rose-900 border border-rose-200">
-              Mortality Intelligence Engine
-            </span>
-            <span className="text-xs text-slate-500 font-mono">“Why Trees Fail”</span>
+      <div>
+        <h1 className="text-3xl font-serif text-slate-900 tracking-tight">Failure Insights</h1>
+        <p className="text-sm text-slate-500 mt-1">Turn tree mortality data into systemic planning intelligence.</p>
+      </div>
+
+      {/* Top Urgent Summary Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Large Metric Card */}
+        <div className="lg:col-span-1 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col justify-center relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-slate-50 to-transparent pointer-events-none" />
+          <div className="relative z-10 text-center lg:text-left">
+            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">Total Autopsies</span>
+            <h2 className="text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
+              80 <span className="text-xl text-slate-500 font-medium tracking-normal">Trees</span>
+            </h2>
+            <p className="text-slate-500 text-sm">
+              Analyzed failures from the pilot campus drive.
+            </p>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-950 mt-1">
-            Failure Autopsy & Systemic Insights
-          </h1>
-          <p className="text-xs text-slate-600 mt-0.5">
-            Turn tree mortality data into systemic planning intelligence. Prevent repeated mistakes in upcoming plantation drives.
-          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-center">
-            <span className="text-[10px] font-mono text-rose-800 uppercase font-bold">Total Autopsies</span>
-            <p className="text-xl font-extrabold text-rose-900 font-mono">80 Failed Trees</p>
+        {/* Systemic Takeaways */}
+        <div className="lg:col-span-2 bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-800 flex flex-col justify-center text-white relative overflow-hidden">
+          <div className="absolute -bottom-10 -right-10 opacity-10">
+            <Lightbulb className="w-48 h-48" />
+          </div>
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex items-center gap-2 font-bold text-sm text-emerald-400">
+              <Lightbulb className="w-5 h-5" />
+              Key Systemic Findings for Next Drive
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+              <div className="space-y-1 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                <p className="font-bold text-amber-300">🚨 Zone B Irrigation Deficit</p>
+                <p className="text-slate-300 text-xs">
+                  Water shortages in Kaveri East accounted for 42% of failures.
+                </p>
+                <span className="text-[10px] font-bold text-emerald-400 block mt-2 uppercase tracking-wider">
+                  Recommendation: Solar Drip Lines
+                </span>
+              </div>
+              <div className="space-y-1 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                <p className="font-bold text-rose-300">🐄 Fence Breaches</p>
+                <p className="text-slate-300 text-xs">
+                  Stray cattle grazing accounted for 25% of perimeter failures.
+                </p>
+                <span className="text-[10px] font-bold text-emerald-400 block mt-2 uppercase tracking-wider">
+                  Recommendation: 1.8m Steel Cages
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Cause Breakdown & Hotspot Alert */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Cause Percentage Bars */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">Root-Cause Analysis</span>
-              <h3 className="text-base font-bold text-slate-900">Distribution of Mortality Factors</h3>
-            </div>
-            <span className="text-xs font-mono text-slate-500">Pilot Campus Sample</span>
-          </div>
-
-          <div className="space-y-3.5 pt-2">
-            {failureCausesStats.map((item) => (
-              <div key={item.cause} className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-slate-800">{item.cause}</span>
-                  <div className="flex items-center gap-2 font-mono">
-                    <span className="text-slate-500 text-[11px]">{item.count} trees</span>
-                    <span className="font-bold text-slate-900">{item.percentage}%</span>
-                  </div>
-                </div>
-
-                <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500" 
-                    style={{ width: `${item.percentage}%`, backgroundColor: item.color }} 
-                  />
-                </div>
-                <span className="text-[10px] text-slate-400 font-mono">{item.classification}</span>
-              </div>
-            ))}
+      {/* Main Cause Breakdown Chart */}
+      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Distribution of Mortality Factors</h3>
+            <span className="text-sm text-slate-500">Root-cause analysis by percentage</span>
           </div>
         </div>
 
-        {/* Systemic Actionable Takeaways */}
-        <div className="lg:col-span-5 bg-gradient-to-br from-amber-50 via-white to-amber-50/60 rounded-3xl border border-amber-200 p-6 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
-              <Lightbulb className="w-5 h-5 text-amber-600" />
-              Key Systemic Findings for Next Drive
-            </div>
-
-            <div className="mt-4 space-y-3 text-xs text-slate-700">
-              <div className="p-3 bg-white rounded-2xl border border-amber-200 shadow-2xs space-y-1">
-                <p className="font-bold text-rose-900">🚨 Zone B Irrigation Deficit (42%)</p>
-                <p className="text-slate-600 text-[11px]">
-                  Water shortages in Zone B (Kaveri East) accounted for almost half of all failures due to broken trench canal and manual hose delays.
-                </p>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">
-                  Recommendation: Install solar drip lines before monsoon end.
-                </span>
-              </div>
-
-              <div className="p-3 bg-white rounded-2xl border border-amber-200 shadow-2xs space-y-1">
-                <p className="font-bold text-amber-900">🐄 Boundary Fence Breaches (25%)</p>
-                <p className="text-slate-600 text-[11px]">
-                  Stray cattle from neighboring village grazed saplings lacking heavy gauge iron tree guards.
-                </p>
-                <span className="text-[10px] font-bold text-emerald-700 block mt-1">
-                  Recommendation: Mandate 1.8m steel cages for all perimeter zones.
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-amber-200 text-xs font-mono text-amber-900 flex items-center justify-between">
-            <span>Autopsy Classification:</span>
-            <span className="font-bold">67% Systemic • 33% Custodial</span>
-          </div>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={failureCausesStats}
+              layout="vertical"
+              margin={{ top: 0, right: 30, left: 0, bottom: 0 }}
+            >
+              <XAxis type="number" hide />
+              <YAxis 
+                dataKey="cause" 
+                type="category" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#475569', fontSize: 12, fontWeight: 600 }}
+                width={150}
+              />
+              <Tooltip 
+                cursor={{ fill: '#f8fafc' }}
+                contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                itemStyle={{ color: '#0f172a', fontWeight: 'bold' }}
+              />
+              <Bar dataKey="percentage" radius={[0, 8, 8, 0]} barSize={24}>
+                {failureCausesStats.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Failed Tree Case Studies / Autopsy Records */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertOctagon className="w-5 h-5 text-rose-600" />
-            <h3 className="text-base font-bold text-slate-900">
-              Detailed Tree Mortality Autopsy Records
+      <div className="bg-white rounded-3xl border border-slate-100 p-8 shadow-sm space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <TrendingDown className="w-5 h-5 text-rose-500" />
+              Detailed Autopsy Records
             </h3>
+            <p className="text-sm text-slate-500 mt-1">Investigated mortality cases and specific learnings.</p>
           </div>
-          <span className="text-xs text-slate-500 font-mono">Showing investigated records</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {failedTrees.map((tree) => {
             const autopsy = tree.failureAutopsy;
             if (!autopsy) return null;
@@ -148,45 +144,50 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
             return (
               <div 
                 key={tree.id}
-                className="p-4 rounded-2xl bg-slate-50 border border-slate-200 hover:border-rose-300 transition-all space-y-3"
+                className="p-5 rounded-3xl bg-slate-50 border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col justify-between"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-xs text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
-                        {tree.id}
-                      </span>
-                      <span className="text-xs font-bold text-rose-700">
-                        {autopsy.primaryCause}
-                      </span>
+                <div>
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-sm text-slate-900">
+                          {tree.id}
+                        </span>
+                        <span className="text-[10px] font-bold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
+                          {autopsy.primaryCause}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium">
+                        {tree.speciesName} • {tree.zone}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-600 font-medium mt-1">
-                      {tree.speciesName} ({tree.tamilName}) • {tree.zone}
-                    </p>
+
+                    <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-slate-200 text-slate-700 uppercase tracking-wide">
+                      {autopsy.classification}
+                    </span>
                   </div>
 
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-100 text-rose-800 font-bold">
-                    {autopsy.classification}
-                  </span>
+                  <div className="text-sm text-slate-700 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm mb-4">
+                    <p className="italic mb-2">"{autopsy.autopsyNotes}"</p>
+                    <div className="flex items-start gap-2 pt-2 border-t border-slate-50">
+                      <Info className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+                      <p className="text-emerald-800 font-medium text-xs">
+                        {autopsy.preventiveLesson}
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="text-xs space-y-1 text-slate-700 bg-white p-3 rounded-xl border border-slate-200">
-                  <p className="italic">"{autopsy.autopsyNotes}"</p>
-                  <p className="text-emerald-700 font-semibold pt-1">
-                    Lesson: {autopsy.preventiveLesson}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between pt-1 text-xs">
-                  <span className="text-slate-400 font-mono text-[11px]">
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-slate-400 font-mono text-[10px] uppercase tracking-wider">
                     Audited: {autopsy.recordedDate}
                   </span>
                   <button
                     onClick={() => onOpenAutopsyModal(tree)}
-                    className="text-xs font-bold text-rose-700 hover:text-rose-900 flex items-center gap-1"
+                    className="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition-colors"
                   >
-                    View Autopsy Record
-                    <ArrowRight className="w-3 h-3" />
+                    View Full Record
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>

@@ -307,7 +307,8 @@ export const Tree3DViewer: React.FC<Tree3DViewerProps> = ({
       renderer.setSize(newWidth, newHeight);
     };
 
-    window.addEventListener('resize', handleResize);
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -317,7 +318,7 @@ export const Tree3DViewer: React.FC<Tree3DViewerProps> = ({
         window.removeEventListener('mouseup', onMouseUp);
         container.removeEventListener('wheel', onWheel);
       }
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       renderer.dispose();
     };
   }, [activeStage, status, isAutoRotate, interactive]);

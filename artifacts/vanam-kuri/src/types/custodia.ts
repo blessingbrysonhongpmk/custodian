@@ -178,4 +178,5 @@ export type ActiveTab =
   | 'autopsy' 
   | 'custodian-view' 
   | 'impact-report'
-  | 'register-tree';
+  | 'register-tree'
+  | 'verification-queue';
