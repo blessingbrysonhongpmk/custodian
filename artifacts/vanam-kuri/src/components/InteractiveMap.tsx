@@ -1,25 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Tree, TreeStatus } from '../types/custodia';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { 
-  MapPin, 
-  Navigation, 
-  Compass, 
   Search, 
-  Filter, 
+  MapPin, 
   CheckCircle2, 
-  AlertTriangle, 
-  HelpCircle, 
-  XCircle, 
-  ChevronRight,
-  ExternalLink,
-  Layers,
-  Sparkles,
-  Eye,
-  X,
-  Activity,
-  Camera,
-  User
+  AlertTriangle,
+  ArrowRight
 } from 'lucide-react';
+
+// Fix for Leaflet default icon issues in some bundlers
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface InteractiveMapProps {
   trees: Tree[];
@@ -29,280 +27,236 @@ interface InteractiveMapProps {
   onOpenVerification?: (tree: Tree) => void;
 }
 
+// Component to handle map resizing issues when sidebar toggles
+const MapResizeHandler = () => {
+  const map = useMap();
+  useEffect(() => {
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
+    
+    // Also trigger on mount and shortly after (for initial layout settling)
+    map.invalidateSize();
+    const timer = setTimeout(() => map.invalidateSize(), 300);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
+    };
+  }, [map]);
+  return null;
+};
+
 export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   trees,
-  selectedTreeId = 'TN-COL-00125',
+  selectedTreeId,
   onSelectTree,
   onOpenPassport,
-  onOpenVerification,
 }) => {
-  const [activeZone, setActiveZone] = useState<string>('ALL');
   const [activeStatus, setActiveStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [activeLayer, setActiveLayer] = useState<'campus' | 'satellite' | 'heatmap'>('campus');
-  const [currentSelectedTree, setCurrentSelectedTree] = useState<Tree | null>(
-    trees.find(t => t.id === selectedTreeId) || null
-  );
 
-  const zones = ['ALL', 'Playground North', 'Zone B — Kaveri East', 'Hostel Grove South', 'Lake Bund Perimeter', 'Library Quadrangle'];
+  const filteredTrees = useMemo(() => {
+    return trees.filter(tree => {
+      // Mapping custody statuses to simple UI filters for the demo
+      let mappedStatus = 'active';
+      const custody = tree.custodyHistory?.find(c => c.active) || tree.custodyHistory?.[0];
+      const custodyActive = custody?.active;
+      
+      if (!custodyActive) mappedStatus = 'orphaned';
+      else if (tree.status === 'at-risk') mappedStatus = 'urgent';
+      else if (tree.status === 'orphaned') mappedStatus = 'handoff_required';
+      else if (tree.status === 'failed') mappedStatus = 'escalated';
+      
+      const matchesStatus = activeStatus === 'ALL' || mappedStatus === activeStatus || tree.status === activeStatus;
+      const matchesSearch = 
+        tree.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        tree.speciesName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (tree.currentCustodian || '').toLowerCase().includes(searchQuery.toLowerCase());
+        
+      return matchesStatus && matchesSearch;
+    });
+  }, [trees, activeStatus, searchQuery]);
 
-  const filteredTrees = trees.filter(tree => {
-    const matchesZone = activeZone === 'ALL' || tree.zone === activeZone;
-    const matchesStatus = activeStatus === 'ALL' || tree.status === activeStatus;
-    const matchesSearch = 
-      tree.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tree.speciesName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tree.currentCustodian.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      tree.landmark.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesZone && matchesStatus && matchesSearch;
-  });
-
-  const getStatusColor = (status: TreeStatus) => {
-    switch (status) {
-      case 'healthy': return { bg: 'bg-emerald-500', text: 'text-emerald-700', border: 'border-emerald-500', ring: 'ring-emerald-200' };
-      case 'at-risk': return { bg: 'bg-amber-500', text: 'text-amber-700', border: 'border-amber-500', ring: 'ring-amber-200' };
-      case 'orphaned': return { bg: 'bg-orange-500', text: 'text-orange-700', border: 'border-orange-500', ring: 'ring-orange-200' };
-      case 'failed': return { bg: 'bg-rose-500', text: 'text-rose-700', border: 'border-rose-500', ring: 'ring-rose-200' };
-      default: return { bg: 'bg-blue-500', text: 'text-blue-700', border: 'border-blue-500', ring: 'ring-blue-200' };
+  const mapCenter = useMemo((): [number, number] => {
+    if (filteredTrees.length > 0) {
+      // Find average lat/lng of all filtered trees
+      const sumLat = filteredTrees.reduce((acc, t) => acc + t.coordinates[0], 0);
+      const sumLng = filteredTrees.reduce((acc, t) => acc + t.coordinates[1], 0);
+      return [sumLat / filteredTrees.length, sumLng / filteredTrees.length];
     }
-  };
+    // Fallback to Chennai coordinates if no trees
+    return [13.0605, 80.2290];
+  }, [filteredTrees]);
 
-  const getMapPosition = (coords: [number, number], index: number) => {
-    const lat = coords[0];
-    const lng = coords[1];
+  // Create a custom DivIcon based on tree status
+  const createCustomIcon = (tree: Tree) => {
+    let colorClass = 'bg-emerald-500 shadow-emerald-500/50';
+    let ringClass = 'ring-emerald-200';
     
-    // Spread coordinates naturally inside grid
-    const x = ((lng - 80.2290) / 0.0100) * 80 + 10;
-    const y = (1 - (lat - 13.0605) / 0.0065) * 75 + 12;
+    // Determine color based on custody and health
+    if (tree.status === 'at-risk') {
+      colorClass = 'bg-red-500 shadow-red-500/50';
+      ringClass = 'ring-red-200';
+    } else if (tree.status === 'orphaned') {
+      colorClass = 'bg-gray-400 shadow-gray-400/50';
+      ringClass = 'ring-gray-200';
+    } else if (tree.healthScore < 80) {
+      colorClass = 'bg-orange-500 shadow-orange-500/50';
+      ringClass = 'ring-orange-200';
+    } else if (tree.healthScore < 90) {
+      colorClass = 'bg-amber-500 shadow-amber-500/50';
+      ringClass = 'ring-amber-200';
+    }
 
-    return {
-      left: `${Math.max(8, Math.min(92, x))}%`,
-      top: `${Math.max(8, Math.min(88, y))}%`,
-    };
+    const htmlString = `
+      <div class="relative flex items-center justify-center">
+        <div class="absolute -inset-1 rounded-full ${colorClass} opacity-25 animate-ping"></div>
+        <div class="relative w-5 h-5 rounded-full border-2 border-white ${colorClass} shadow-lg ring-2 ${ringClass} transition-transform hover:scale-125 z-10"></div>
+      </div>
+    `;
+
+    return L.divIcon({
+      className: 'custom-tree-marker',
+      html: htmlString,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
+    });
   };
 
   return (
-    <div className="w-full h-[700px] relative rounded-3xl overflow-hidden border border-slate-200 shadow-sm animate-fade-in bg-slate-900 select-none">
-      
-      {/* Background Layer */}
-      <div 
-        className={`absolute inset-0 transition-opacity duration-300 ${
-          activeLayer === 'satellite' 
-            ? 'bg-[radial-gradient(#1e293b_1px,transparent_1px)] bg-[size:16px_16px] bg-slate-950' 
-            : activeLayer === 'heatmap'
-            ? 'bg-gradient-to-tr from-slate-950 via-emerald-950/30 to-amber-950/30'
-            : 'bg-slate-900 bg-[radial-gradient(#334155_1px,transparent_1px)] bg-[size:24px_24px]'
-        }`}
-      >
-        {/* Campus Landmark Areas */}
-        <div className="absolute top-[18%] left-[22%] border border-emerald-500/20 bg-emerald-900/10 rounded-2xl px-3 py-2 text-[11px] font-mono text-emerald-400/80 pointer-events-none">
-          🏀 Playground North (Court #1)
+    <div className="flex flex-col gap-4 animate-fade-in">
+      {/* Top Map Summary Panel */}
+      <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-6 text-sm font-semibold text-slate-700">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold text-slate-900">{trees.length}</span>
+          <span className="text-slate-500">Trees Mapped</span>
         </div>
-        <div className="absolute top-[50%] left-[15%] border border-blue-500/20 bg-blue-900/10 rounded-2xl px-3 py-2 text-[11px] font-mono text-blue-400/80 pointer-events-none">
-          💧 Zone B — Kaveri East Trench
+        <div className="w-px h-8 bg-slate-200" />
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <span className="text-emerald-700">{trees.filter(t => t.healthScore >= 90).length} Active Custody</span>
         </div>
-        <div className="absolute top-[28%] right-[18%] border border-amber-500/20 bg-amber-900/10 rounded-2xl px-3 py-2 text-[11px] font-mono text-amber-400/80 pointer-events-none">
-          🏫 Library Quadrangle Central Lawn
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+          <span className="text-amber-700">{trees.filter(t => t.healthScore >= 80 && t.healthScore < 90).length} Custody Expiring</span>
         </div>
-        <div className="absolute bottom-[18%] left-[45%] border border-slate-500/20 bg-slate-800/20 rounded-2xl px-3 py-2 text-[11px] font-mono text-slate-400/80 pointer-events-none">
-          🌊 Lake Bund Perimeter & Watchpost
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+          <span className="text-orange-700">{trees.filter(t => t.healthScore < 80).length} Handoff Required</span>
         </div>
-
-        {/* Roads & Pathways SVG */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" xmlns="http://www.w3.org/2000/svg">
-          <path d="M 50 150 Q 250 100 450 200 T 800 350" fill="none" stroke="#94A3B8" strokeWidth="6" strokeDasharray="8 6" />
-          <path d="M 300 50 L 300 450" fill="none" stroke="#94A3B8" strokeWidth="4" />
-          <path d="M 100 300 L 700 300" fill="none" stroke="#94A3B8" strokeWidth="4" />
-        </svg>
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+          <span className="text-red-700">{trees.filter(t => t.status === 'at-risk').length} Urgent</span>
+        </div>
       </div>
 
-      {/* Floating Controls (Top Left) */}
-      <div className="absolute top-4 left-4 z-40 flex flex-col gap-3">
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 shadow-sm border border-slate-100 flex flex-col gap-2">
-          
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search Tree ID, Custodian..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-3 py-2 text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 w-64 md:w-72"
-            />
-          </div>
+      <div className="w-full min-h-[500px] lg:h-[650px] relative rounded-3xl overflow-hidden border border-slate-200 shadow-sm bg-slate-100">
+        
+        {/* React Leaflet Map Container */}
+        <MapContainer 
+          center={mapCenter} 
+          zoom={14} 
+          scrollWheelZoom={true} 
+          className="w-full h-full z-0"
+        >
+          <MapResizeHandler />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-          <div className="flex gap-2">
-            <select
-              value={activeZone}
-              onChange={(e) => setActiveZone(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+          {filteredTrees.map((tree) => (
+            <Marker 
+              key={tree.id} 
+              position={tree.coordinates} 
+              icon={createCustomIcon(tree)}
+              eventHandlers={{
+                click: () => onSelectTree(tree),
+              }}
             >
-              {zones.map(z => (
-                <option key={z} value={z}>{z === 'ALL' ? 'All Zones' : z}</option>
-              ))}
-            </select>
-          </div>
+              <Popup className="rounded-2xl shadow-xl border-0">
+                <div className="flex flex-col min-w-[200px] p-1 gap-3">
+                  <div>
+                    <span className="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full uppercase tracking-wider mb-1 inline-block">
+                      {tree.id}
+                    </span>
+                    <h3 className="text-lg font-bold text-slate-900 leading-tight">{tree.speciesName}</h3>
+                    <p className="text-xs text-slate-500 italic font-serif">{tree.botanicalName}</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] mb-0.5">Health Score</p>
+                      <p className="font-bold text-slate-900">{tree.healthScore} / 100</p>
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                      <p className="text-slate-400 font-bold uppercase tracking-wider text-[9px] mb-0.5">AI Confidence</p>
+                      <p className="font-bold text-emerald-600">
+                        {tree.checkpoints?.[0]?.confidenceScore || 94}%
+                      </p>
+                    </div>
+                  </div>
 
-        </div>
+                  <div className="text-xs space-y-1">
+                    <div className="flex justify-between border-b border-slate-100 pb-1">
+                      <span className="text-slate-500 font-medium">Custody Status</span>
+                      <span className="font-bold text-amber-600 uppercase">Handoff Required</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-100 pb-1 pt-1">
+                      <span className="text-slate-500 font-medium">Custodian</span>
+                      <span className="font-bold text-slate-900">{tree.currentCustodian}</span>
+                    </div>
+                  </div>
 
-        {/* Status Filters */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-1.5 shadow-sm border border-slate-100 flex items-center gap-1">
-          {['ALL', 'healthy', 'at-risk', 'orphaned', 'failed'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setActiveStatus(st)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all ${
-                activeStatus === st 
-                  ? 'bg-slate-900 text-white shadow-sm' 
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {st === 'ALL' ? 'All' : st}
-            </button>
+                  <button 
+                    onClick={() => onOpenPassport(tree.id)}
+                    className="mt-1 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    Open Tree Passport <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
           ))}
-        </div>
-      </div>
+        </MapContainer>
 
-      {/* Floating View Toggles (Bottom Left) */}
-      <div className="absolute bottom-4 left-4 z-40 flex flex-col gap-3">
-        <div className="bg-white/90 backdrop-blur-md p-1.5 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-1">
-          <button
-            onClick={() => setActiveLayer('campus')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 ${activeLayer === 'campus' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100'}`}
-          >
-            <MapPin className="w-3.5 h-3.5" /> Campus Map
-          </button>
-          <button
-            onClick={() => setActiveLayer('satellite')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 ${activeLayer === 'satellite' ? 'bg-emerald-50 text-emerald-700' : 'text-slate-600 hover:bg-slate-100'}`}
-          >
-            <Layers className="w-3.5 h-3.5" /> Satellite
-          </button>
-          <button
-            onClick={() => setActiveLayer('heatmap')}
-            className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 ${activeLayer === 'heatmap' ? 'bg-amber-50 text-amber-700' : 'text-slate-600 hover:bg-slate-100'}`}
-          >
-            <Activity className="w-3.5 h-3.5" /> Risk Heatmap
-          </button>
-        </div>
-
-        {/* Legend */}
-        <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2 text-xs font-medium text-slate-600">
-          <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Alive ({trees.filter(t => t.status === 'healthy').length})</span>
-          <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-amber-500" /> At Risk ({trees.filter(t => t.status === 'at-risk').length})</span>
-          <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-orange-500" /> Orphaned ({trees.filter(t => t.status === 'orphaned').length})</span>
-          <span className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-rose-500" /> Failed ({trees.filter(t => t.status === 'failed').length})</span>
-        </div>
-      </div>
-
-      {/* Compass (Bottom Right) */}
-      <div className="absolute bottom-4 right-4 z-40 bg-white/90 backdrop-blur-md p-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-2 text-xs font-medium text-slate-700">
-        <Compass className="w-4 h-4 text-emerald-600 animate-spin-slow" />
-        <span>N 13.0628°</span>
-      </div>
-
-      {/* Tree Pins */}
-      {filteredTrees.map((tree, idx) => {
-        const pos = getMapPosition(tree.coordinates, idx);
-        const isSelected = currentSelectedTree?.id === tree.id;
-        const style = getStatusColor(tree.status);
-
-        return (
-          <div
-            key={tree.id}
-            style={pos}
-            onClick={() => {
-              setCurrentSelectedTree(tree);
-              onSelectTree(tree);
-            }}
-            className={`absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer group transition-all duration-300 ${isSelected ? 'z-50' : 'z-20 hover:z-30'}`}
-          >
-            {(tree.isPilotTree || tree.status === 'at-risk' || tree.status === 'orphaned') && (
-              <span className={`absolute -inset-2 rounded-full ${style.bg} opacity-30 animate-ping`} />
-            )}
+        {/* Floating Controls (Top Right) over Map Container */}
+        <div className="absolute top-4 right-4 z-[400] flex flex-col gap-3">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-2 shadow-md border border-slate-100 flex flex-col gap-2">
             
-            <div 
-              className={`relative flex items-center justify-center rounded-full border-2 transition-transform ${
-                isSelected 
-                  ? `${style.bg} border-white shadow-lg ring-4 ${style.ring} scale-125 w-8 h-8` 
-                  : `bg-slate-900 border-white text-white shadow-sm w-6 h-6 hover:scale-125`
-              }`}
-            >
-              {isSelected && <MapPin className={`w-3.5 h-3.5 text-white`} />}
-            </div>
-
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md">
-              {tree.id}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Floating Selected Tree Detail Card (Top Right) */}
-      {currentSelectedTree && (
-        <div className="absolute top-4 right-4 z-50 w-80 animate-slide-in-right">
-          <div className="bg-white/95 backdrop-blur-xl rounded-3xl p-5 shadow-xl border border-slate-100 flex flex-col gap-4">
-            
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider bg-slate-100 text-slate-500 uppercase">
-                  {currentSelectedTree.zone}
-                </span>
-                <h3 className="text-xl font-bold text-slate-900 mt-2">
-                  {currentSelectedTree.id}
-                </h3>
-                <p className="text-sm font-medium text-emerald-700 italic font-serif">
-                  {currentSelectedTree.speciesName}
-                </p>
-              </div>
-              <button 
-                onClick={() => setCurrentSelectedTree(null)}
-                className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="h-32 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 relative">
-              <img 
-                src={currentSelectedTree.currentPhotoUrl} 
-                alt="Current State" 
-                className="w-full h-full object-cover" 
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search Tree ID or Name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 py-2 text-sm rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 w-64"
               />
-              <div className="absolute bottom-2 right-2 px-2 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white text-[10px] font-medium flex items-center gap-1">
-                <Camera className="w-3 h-3" /> Latest
-              </div>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span className="text-sm font-medium text-slate-600">Health</span>
-                </div>
-                <span className="text-sm font-bold text-slate-900">{currentSelectedTree.healthScore}/100</span>
-              </div>
-              
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-slate-400" />
-                  <span className="text-sm font-medium text-slate-600">Custodian</span>
-                </div>
-                <span className="text-sm font-bold text-slate-900 text-right">{currentSelectedTree.currentCustodian}</span>
-              </div>
+            <div className="flex flex-wrap gap-1 max-w-[256px]">
+              {['ALL', 'active', 'healthy', 'at-risk', 'orphaned', 'failed'].map((st) => (
+                <button
+                  key={st}
+                  onClick={() => setActiveStatus(st)}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all flex-1 ${
+                    activeStatus === st 
+                      ? 'bg-slate-900 text-white shadow-sm' 
+                      : 'text-slate-600 bg-slate-50 hover:bg-slate-100 border border-slate-100'
+                  }`}
+                >
+                  {st === 'ALL' ? 'All Trees' : st}
+                </button>
+              ))}
             </div>
-
-            <button
-              onClick={() => onOpenPassport(currentSelectedTree.id)}
-              className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm mt-1"
-            >
-              <Eye className="w-4 h-4" />
-              Open Tree Passport
-            </button>
           </div>
         </div>
-      )}
 
+      </div>
     </div>
   );
 };

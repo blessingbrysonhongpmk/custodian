@@ -61,22 +61,19 @@ When custody is about to expire, TreeGuard:
 ## Architecture
 
 ```
-┌──────────────────────┐     ┌──────────────────────┐
-│    Frontend (React)   │────▶│   Backend (Express)   │
-│  Vite + TailwindCSS   │     │   REST API + Engines  │
-│  localhost:3000       │     │   localhost:5001       │
-└──────────────────────┘     └──────────┬───────────┘
-                                        │
-                              ┌─────────▼─────────┐
-                              │   PostgreSQL DB    │
-                              │   Drizzle ORM      │
-                              │   10 Tables        │
-                              └─────────┬──────────┘
-                                        │
-                              ┌─────────▼──────────┐
-                              │   Google Gemini AI  │
-                              │   (Optional)        │
-                              └────────────────────┘
+         TREEGUARD
+             │
+ ┌───────────┼───────────┐
+ │           │           │
+ ▼           ▼           ▼
+REACT      SUPABASE    GEMINI AI
+FRONTEND   TypeScript    Google AI
+           Backend
+             │
+             │ PostgreSQL
+             │ Authentication
+             │ Storage
+             │ Realtime
 ```
 
 ---
@@ -96,19 +93,14 @@ cd custodian
 pnpm install
 ```
 
-### 2. Database Setup
-
 ```bash
-# Start PostgreSQL (via Docker)
-docker compose up -d db
+# Setup Supabase (use standard Supabase dashboard)
+1. Create a Supabase project
+2. Run SQL scripts from `supabase/migrations/`
+3. Get your API keys and connection strings
 
-# Push schema
-cd lib/db
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard pnpm run push
-
-# Seed data (500 trees, 12 users, 4 organizations)
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard pnpm run seed
-cd ../..
+# Database Schema & Data Migration
+Supabase handles the core DB. Existing local Express API backend is retained purely to proxy Gemini requests securely.
 ```
 
 ### 3. Environment Variables
@@ -116,7 +108,8 @@ cd ../..
 ```bash
 cp .env.example .env
 # Edit .env and set:
-# DATABASE_URL=postgresql://postgres:postgres@localhost:5432/treeguard
+# VITE_SUPABASE_URL=your_supabase_url
+# VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 # GEMINI_API_KEY= (optional — app works without it in demo mode)
 ```
 

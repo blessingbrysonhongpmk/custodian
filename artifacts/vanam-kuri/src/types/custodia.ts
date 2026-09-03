@@ -61,6 +61,8 @@ export interface CheckpointEvidence {
     canopyDensityPercent: number;
     pestActivity: boolean;
   };
+  aiAnalysis?: any;
+  confidenceScore?: number;
 }
 
 export interface CustodyRecord {
