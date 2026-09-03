@@ -110,9 +110,12 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
       ringClass = 'ring-amber-200';
     }
 
+    // Only pulse at-risk or urgent trees
+    const shouldPulse = tree.status === 'at-risk' || tree.healthScore < 70;
+
     const htmlString = `
       <div class="relative flex items-center justify-center">
-        <div class="absolute -inset-1 rounded-full ${colorClass} opacity-25 animate-ping"></div>
+        ${shouldPulse ? `<div class="absolute -inset-1 rounded-full ${colorClass} opacity-25 animate-ping"></div>` : ''}
         <div class="relative w-5 h-5 rounded-full border-2 border-white ${colorClass} shadow-lg ring-2 ${ringClass} transition-transform hover:scale-125 z-10"></div>
       </div>
     `;
@@ -203,11 +206,27 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
                   <div className="text-xs space-y-1">
                     <div className="flex justify-between border-b border-slate-100 pb-1">
                       <span className="text-slate-500 font-medium">Custody Status</span>
-                      <span className="font-bold text-amber-600 uppercase">Handoff Required</span>
+                      <span className={`font-bold uppercase ${
+                        tree.status === 'healthy' ? 'text-emerald-600' : 
+                        tree.status === 'at-risk' ? 'text-red-600' :
+                        tree.status === 'orphaned' ? 'text-gray-500' : 'text-amber-600'
+                      }`}>
+                        {tree.status === 'healthy' ? 'Active Custody' :
+                         tree.status === 'at-risk' ? 'Urgent Intervention' :
+                         tree.status === 'orphaned' ? 'Orphaned' : 'Handoff Required'}
+                      </span>
                     </div>
                     <div className="flex justify-between border-b border-slate-100 pb-1 pt-1">
                       <span className="text-slate-500 font-medium">Custodian</span>
                       <span className="font-bold text-slate-900">{tree.currentCustodian}</span>
+                    </div>
+                    <div className="flex justify-between pb-1 pt-1">
+                      <span className="text-slate-500 font-medium">Next Checkpoint</span>
+                      <span className="font-semibold text-slate-700">
+                        {tree.checkpoints?.find(c => c.status === 'pending')?.scheduledDate 
+                          ? new Date(tree.checkpoints.find(c => c.status === 'pending')!.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                          : 'Sep 18, 2026'}
+                      </span>
                     </div>
                   </div>
 

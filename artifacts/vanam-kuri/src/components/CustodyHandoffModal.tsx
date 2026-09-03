@@ -316,6 +316,13 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
                   <p className="text-[10px] font-mono text-slate-400 pt-1">Ledger Hash: 0x8a92f...c31b9d</p>
                 </div>
               </div>
+
+              {/* Production Notification Note */}
+              <div className="mt-4 p-3 rounded-xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-center">
+                <p className="text-[11px] text-slate-500">
+                  📱 In production, notifications are delivered through <strong className="text-slate-700">WhatsApp / SMS</strong> to both outgoing and incoming custodians.
+                </p>
+              </div>
             </div>
           )}
         </div>

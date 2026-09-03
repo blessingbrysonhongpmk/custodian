@@ -345,7 +345,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
         {/* Right: Featured Insights */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Pilot Tree TN-COL-00125 Focus Card */}
+          {/* Pilot Tree TG-IND-001 Focus Card */}
           <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 hover:-translate-y-1 transition-transform duration-300">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[11px] font-semibold text-emerald-600 tracking-wide uppercase">
@@ -361,7 +361,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-sm" 
               />
               <div>
-                <h4 className="font-bold text-slate-800 text-sm">Tree TN-COL-00125</h4>
+                <h4 className="font-bold text-slate-800 text-sm">Tree TG-IND-001</h4>
                 <p className="text-[11px] text-slate-500 mt-0.5">Playground North</p>
                 <p className="text-[11px] text-emerald-700 font-medium mt-1">Graduation Handoff</p>
               </div>
@@ -369,7 +369,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
             <button
               onClick={() => {
-                const pTree = trees.find(t => t.id === 'TN-COL-00125');
+                const pTree = trees.find(t => t.id === 'TG-IND-001');
                 if (pTree) onOpenHandoff(pTree);
               }}
               className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-colors"

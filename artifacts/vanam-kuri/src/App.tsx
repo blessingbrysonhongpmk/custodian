@@ -49,7 +49,7 @@ export default function App() {
   
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [activeRole, setActiveRole] = useState<ActiveRole>('ADMIN');
-  const [selectedTreeId, setSelectedTreeId] = useState<string>('TN-COL-00125');
+  const [selectedTreeId, setSelectedTreeId] = useState<string>('TG-IND-001');
   const [demoStep, setDemoStep] = useState<number>(0);
 
   // Modals state
@@ -153,19 +153,19 @@ export default function App() {
         showToast("Step 1: 500 trees planted. Dashboard shows healthy system. Notice the verification gap.");
         break;
       case 1:
-        setSelectedTreeId('TN-COL-00125');
+        setSelectedTreeId('TG-IND-001');
         setActiveTab('passport');
         setActiveRole('CUSTODIAN');
         showToast("Step 2: Student custodian Arun Kumar graduating. Tree TG-IND-001 custody expires in 14 days.");
         break;
       case 2:
-        setSelectedTreeId('TN-COL-00125');
+        setSelectedTreeId('TG-IND-001');
         setActiveTab('passport');
         setHandoffModalTree(pilotTree);
         showToast("Step 3: TreeGuard detects risk. Successor matching engine finds nearby candidates.");
         break;
       case 3:
-        setSelectedTreeId('TN-COL-00125');
+        setSelectedTreeId('TG-IND-001');
         setActiveTab('passport');
         setActiveRole('PEER_VERIFIER');
         setVerificationModalTree(pilotTree);

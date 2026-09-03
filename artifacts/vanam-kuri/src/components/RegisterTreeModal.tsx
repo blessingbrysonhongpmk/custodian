@@ -264,7 +264,7 @@ export const RegisterTreeModal: React.FC<RegisterTreeModalProps> = ({
                           <div className="flex items-center justify-between">
                             <div>
                               <p className="text-sm font-bold text-slate-900">{cd.name}</p>
-                              <p className="text-xs text-slate-500 mt-0.5">{cd.role} • {cd.unit}</p>
+                              <p className="text-xs text-slate-500 mt-0.5">{cd.unit}</p>
                             </div>
                             <div className="text-right">
                               <span className="text-[10px] font-bold text-slate-400 uppercase">Trust Score</span>
