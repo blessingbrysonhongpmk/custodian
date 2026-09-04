@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ActiveTab, ActiveRole } from '../types/custodia';
 import { 
   Sprout, 
   LayoutDashboard, 
   FileText, 
   Map, 
-  ShieldAlert, 
-  AlertOctagon, 
+  ShieldCheck, 
   Smartphone, 
   FileSpreadsheet, 
   Plus,
   Building2,
   Users,
-  ShieldCheck
+  BarChart3,
+  Bell,
+  HelpCircle,
+  Settings,
+  TreePine,
+  MapPin,
+  Leaf
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -44,161 +49,287 @@ export const Sidebar: React.FC<SidebarProps> = ({
     });
   };
 
+  // Check if item is active
+  const isItemActive = (id: string) => {
+    if (id === 'custodian-view' && (activeTab === 'custodian-view' || activeRole === 'CUSTODIAN')) {
+      return activeTab === 'custodian-view';
+    }
+    return activeTab === id;
+  };
+
   return (
     <aside 
-      className={`bg-[#0B211A] text-white flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] flex-shrink-0 ${
-        isCollapsed ? 'w-[76px]' : 'w-[310px]'
+      className={`sidebar-forest text-white flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] flex-shrink-0 select-none ${
+        isCollapsed ? 'w-[76px]' : 'w-[280px]'
       }`}
     >
-      {/* Brand Header */}
+      {/* Brand Header with TN Gov Logo */}
       <div 
-        className={`p-6 pb-2 cursor-pointer transition-colors hover:bg-white/5 flex items-center ${isCollapsed ? 'justify-center px-0' : ''}`}
+        className={`p-5 pb-4 cursor-pointer transition-colors hover:bg-white/5 flex items-center border-b border-white/5 ${isCollapsed ? 'justify-center px-0' : ''}`}
         onClick={toggleSidebar}
         title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
       >
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-[#10B981] to-[#047857] text-white flex items-center justify-center shadow-md">
-            <Sprout className="w-5 h-5" />
+          <div className="w-10 h-10 shrink-0 rounded-full bg-emerald-900/60 border border-emerald-500/30 flex items-center justify-center shadow-md overflow-hidden p-1">
+            <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-full h-full object-contain filter brightness-110" />
           </div>
-          <div className={`transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
-            <h1 className="font-extrabold text-white text-lg tracking-tight leading-tight whitespace-nowrap">TREEGUARD</h1>
-            <span className="text-[10px] font-bold text-[#10B981] uppercase tracking-wider whitespace-nowrap block">
-              Custody System
+          <div className={`transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
+            <h1 className="font-extrabold text-white text-base tracking-wide leading-tight whitespace-nowrap">
+              VANAM KURI
+            </h1>
+            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap block mt-0.5">
+              GOVT. OF TAMIL NADU
             </span>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className={`py-6 flex-1 space-y-1 overflow-x-hidden ${isCollapsed ? 'px-3' : 'px-4'}`}>
-        <div className={`text-[11px] font-semibold text-[#8B9D96] mb-3 uppercase tracking-wider transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0 px-0 h-0 overflow-hidden mb-0' : 'opacity-100 w-auto px-3 h-auto mb-3'}`}>
-          Navigation
-        </div>
+      {/* Navigation Sections */}
+      <div className={`py-4 flex-1 space-y-5 overflow-x-hidden ${isCollapsed ? 'px-3' : 'px-3.5'}`}>
         
-        {[
-          { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard, roles: ['ADMIN'] },
-          { id: 'passport', label: 'Tree Passport (3D)', icon: FileText, roles: ['ADMIN', 'CUSTODIAN', 'PEER_VERIFIER'] },
-          { id: 'map', label: 'Interactive Locator', icon: Map, roles: ['ADMIN'] },
-          { id: 'risk-center', label: 'Risk Center', icon: ShieldAlert, count: riskCount, roles: ['ADMIN'] },
-          { id: 'autopsy', label: 'Failure Insights', icon: AlertOctagon, roles: ['ADMIN'] },
-          { id: 'custodian-view', label: 'My Trees', icon: Smartphone, roles: ['CUSTODIAN'] },
-          { id: 'verification-queue', label: 'Verification Queue', icon: ShieldCheck, roles: ['PEER_VERIFIER'], count: 2 },
-          { id: 'impact-report', label: 'Impact Report', icon: FileSpreadsheet, roles: ['ADMIN'] },
-        ].filter(item => item.roles.includes(activeRole)).map((item) => {
-          const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => {
-                onSelectTab(item.id as ActiveTab);
-              }}
-              title={isCollapsed ? item.label : undefined}
-              className={`w-full py-2.5 rounded-2xl transition-all duration-300 flex items-center justify-between group overflow-hidden ${
-                isActive
-                  ? 'bg-white/10 text-white font-medium shadow-sm'
-                  : 'text-[#8B9D96] hover:text-white hover:bg-white/5'
-              } ${isCollapsed ? 'px-0 justify-center' : 'px-3'}`}
-            >
-              <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-                <div className="relative flex items-center justify-center shrink-0">
-                  <Icon className={`w-5 h-5 ${isActive ? 'text-[#10B981]' : 'text-[#8B9D96] group-hover:text-white transition-colors'}`} />
-                  {isCollapsed && item.count !== undefined && item.count > 0 && (
-                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#F59E0B] border-2 border-[#0B211A]"></span>
-                  )}
+        {/* 1. MAIN */}
+        <div className="space-y-1">
+          {!isCollapsed && (
+            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
+              MAIN
+            </div>
+          )}
+
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, role: 'ADMIN' },
+            { id: 'passport', label: 'Tree Passport (3D)', icon: FileText, role: 'ALL' },
+            { id: 'custodian-view', label: 'My Trees', icon: TreePine, role: 'CUSTODIAN' },
+            { id: 'custodian-view-full', label: 'Custodian', icon: Users, role: 'CUSTODIAN' },
+            { id: 'verification-queue', label: 'Peer Verifier', icon: ShieldCheck, count: 2, role: 'PEER_VERIFIER' },
+            { id: 'map', label: 'Map View', icon: MapPin, role: 'ALL' },
+          ].map((item) => {
+            const Icon = item.icon;
+            const targetTab = item.id === 'custodian-view-full' ? 'custodian-view' : item.id;
+            const isActive = isItemActive(targetTab);
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (item.role === 'ADMIN' && activeRole !== 'ADMIN') onSelectRole('ADMIN');
+                  if (item.role === 'CUSTODIAN' && activeRole !== 'CUSTODIAN') onSelectRole('CUSTODIAN');
+                  if (item.role === 'PEER_VERIFIER' && activeRole !== 'PEER_VERIFIER') onSelectRole('PEER_VERIFIER');
+                  onSelectTab(targetTab as ActiveTab);
+                }}
+                title={isCollapsed ? item.label : undefined}
+                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden ${
+                  isActive
+                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
+                    : 'text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium'
+                } ${isCollapsed ? 'px-0 justify-center' : 'px-3'}`}
+              >
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-300/70 group-hover:text-white transition-colors'}`} />
+                  </div>
+                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                    isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
+                  }`}>
+                    {item.label}
+                  </span>
                 </div>
-                <span className={`text-sm whitespace-nowrap transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
-                }`}>
-                  {item.label}
-                </span>
+                
+                {!isCollapsed && item.count !== undefined && item.count > 0 && (
+                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                    isActive ? 'bg-white text-emerald-700' : 'bg-amber-500 text-white'
+                  }`}>
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 2. TOOLS */}
+        <div className="space-y-1">
+          {!isCollapsed && (
+            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
+              TOOLS
+            </div>
+          )}
+
+          {[
+            { id: 'impact-report', label: 'Reports', icon: FileSpreadsheet },
+            { id: 'autopsy', label: 'Analytics', icon: BarChart3 },
+            { id: 'notifications', label: 'Notifications', icon: Bell, count: 3 },
+          ].map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  if (item.id === 'notifications') {
+                    // Open notifications or switch to recent alerts
+                    onSelectTab('risk-center');
+                  } else {
+                    onSelectTab(item.id as ActiveTab);
+                  }
+                }}
+                title={isCollapsed ? item.label : undefined}
+                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden ${
+                  isActive
+                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
+                    : 'text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium'
+                } ${isCollapsed ? 'px-0 justify-center' : 'px-3'}`}
+              >
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
+                  <div className="relative flex items-center justify-center shrink-0">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-300/70 group-hover:text-white transition-colors'}`} />
+                  </div>
+                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                    isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
+                  }`}>
+                    {item.label}
+                  </span>
+                </div>
+                
+                {!isCollapsed && item.count !== undefined && (
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
+                    {item.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 3. SUPPORT */}
+        <div className="space-y-1">
+          {!isCollapsed && (
+            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
+              SUPPORT
+            </div>
+          )}
+
+          {[
+            { id: 'help', label: 'Help Center', icon: HelpCircle },
+            { id: 'settings', label: 'Settings', icon: Settings },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  // Trigger helpful toast or info
+                  alert("Government of Tamil Nadu • Vanam Kuri Support Desk is available at support@vanamkuri.tn.gov.in");
+                }}
+                title={isCollapsed ? item.label : undefined}
+                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium ${
+                  isCollapsed ? 'px-0 justify-center' : 'px-3'
+                }`}
+              >
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
+                  <Icon className="w-4 h-4 text-emerald-300/70 group-hover:text-white transition-colors shrink-0" />
+                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                    isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
+                  }`}>
+                    {item.label}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 4. Promotional Nature Card (from reference image!) */}
+        {!isCollapsed && (
+          <div className="pt-2">
+            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-emerald-500/20 group">
+              <img 
+                src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&auto=format&fit=crop&q=80" 
+                alt="Forest Canopy" 
+                className="w-full h-36 object-cover filter brightness-[0.75] group-hover:scale-105 transition-transform duration-500" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-3.5 text-white">
+                <p className="font-bold text-xs leading-snug tracking-tight text-emerald-100 mb-2">
+                  Every Tree We Protect, Protects Us.
+                </p>
+                <div className="inline-flex items-center justify-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-[10px] font-bold text-white px-2.5 py-1 rounded-full w-fit transition-colors">
+                  <span>Plant. Protect. Preserve.</span>
+                  <Leaf className="w-3 h-3 text-emerald-300" />
+                </div>
               </div>
-              
-              {!isCollapsed && (
-                <div className="flex items-center gap-2 shrink-0">
-                  {item.count !== undefined && item.count > 0 && (
-                    <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#F59E0B] text-white">
-                      {item.count}
-                    </span>
-                  )}
-                </div>
-              )}
-            </button>
-          );
-        })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Action Button & Role Switcher */}
-      <div className={`p-4 mt-auto border-t border-white/5 space-y-4 overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'px-2' : 'px-4'}`}>
-        {activeRole === 'ADMIN' && (
-          <button
-            onClick={onOpenRegisterTree}
-            title={isCollapsed ? "Register New Tree" : undefined}
-            className={`rounded-2xl bg-[#10B981] hover:bg-[#059669] text-white text-sm font-bold flex items-center justify-center shadow-lg transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-              isCollapsed ? 'w-12 h-12 mx-auto p-0' : 'w-full px-4 py-3 gap-2'
-            }`}
-          >
-            <Plus className="w-5 h-5 shrink-0" />
-            <span className={`whitespace-nowrap transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
-              Register New Tree
-            </span>
-          </button>
-        )}
+      <div className={`p-3.5 mt-auto border-t border-white/5 space-y-3 overflow-hidden transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-3.5'}`}>
+        <button
+          onClick={onOpenRegisterTree}
+          title={isCollapsed ? "Register Tree" : undefined}
+          className={`rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shadow-md transition-all ${
+            isCollapsed ? 'w-10 h-10 mx-auto p-0' : 'w-full px-3 py-2.5 gap-2'
+          }`}
+        >
+          <Plus className="w-4 h-4 shrink-0" />
+          <span className={`whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
+            Register New Tree
+          </span>
+        </button>
 
-        <div className={`bg-white/5 rounded-2xl font-medium flex flex-col gap-1.5 border border-white/5 transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'p-1' : 'p-2'}`}>
-          <span className={`text-[10px] text-[#8B9D96] uppercase text-center tracking-wider transition-all duration-400 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 h-0 py-0 hidden' : 'opacity-100 h-auto py-1'}`}>
+        {/* Role Simulator */}
+        <div className={`bg-white/5 rounded-xl font-medium flex flex-col gap-1 border border-white/5 ${isCollapsed ? 'p-1' : 'p-1.5'}`}>
+          <span className={`text-[9px] text-emerald-300/60 uppercase text-center font-bold tracking-wider ${isCollapsed ? 'opacity-0 h-0 py-0 hidden' : 'opacity-100 h-auto py-0.5'}`}>
             Simulate Role
           </span>
           
           <div className="flex flex-col gap-1">
-            {/* When collapsed, ONLY show the active role and make it act as an expand trigger */}
             {isCollapsed ? (
               <button
                 onClick={() => setIsCollapsed(false)}
                 title={`Active Role: ${activeRole.replace('_', ' ')} (Click to switch)`}
-                className="w-10 h-10 mx-auto rounded-xl bg-white/10 text-white shadow-sm transition-all duration-300 flex items-center justify-center"
+                className="w-9 h-9 mx-auto rounded-lg bg-white/10 text-white shadow-sm flex items-center justify-center"
               >
-                {activeRole === 'ADMIN' && <Building2 className="w-4 h-4 text-[#10B981]" />}
-                {activeRole === 'CUSTODIAN' && <Users className="w-4 h-4 text-[#3B82F6]" />}
-                {activeRole === 'PEER_VERIFIER' && <ShieldCheck className="w-4 h-4 text-[#8B5CF6]" />}
+                {activeRole === 'ADMIN' && <Building2 className="w-4 h-4 text-emerald-400" />}
+                {activeRole === 'CUSTODIAN' && <Users className="w-4 h-4 text-emerald-300" />}
+                {activeRole === 'PEER_VERIFIER' && <ShieldCheck className="w-4 h-4 text-emerald-200" />}
               </button>
             ) : (
-              // When expanded, show all roles
-              <>
+              <div className="grid grid-cols-3 gap-1 text-[10px]">
                 <button
                   onClick={() => onSelectRole('ADMIN')}
-                  className={`px-3 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
                     activeRole === 'ADMIN'
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : 'text-[#8B9D96] hover:text-white hover:bg-white/5'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Building2 className={`w-3.5 h-3.5 shrink-0 ${activeRole === 'ADMIN' ? 'text-[#10B981]' : ''}`} />
-                  <span className="whitespace-nowrap">Org Admin</span>
+                  <Building2 className="w-3 h-3" />
+                  <span>Admin</span>
                 </button>
                 <button
                   onClick={() => onSelectRole('CUSTODIAN')}
-                  className={`px-3 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
                     activeRole === 'CUSTODIAN'
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : 'text-[#8B9D96] hover:text-white hover:bg-white/5'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <Users className={`w-3.5 h-3.5 shrink-0 ${activeRole === 'CUSTODIAN' ? 'text-[#3B82F6]' : ''}`} />
-                  <span className="whitespace-nowrap">Custodian</span>
+                  <Users className="w-3 h-3" />
+                  <span>Cust</span>
                 </button>
                 <button
                   onClick={() => onSelectRole('PEER_VERIFIER')}
-                  className={`px-3 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 ${
+                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
                     activeRole === 'PEER_VERIFIER'
-                      ? 'bg-white/10 text-white shadow-sm'
-                      : 'text-[#8B9D96] hover:text-white hover:bg-white/5'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
                   }`}
                 >
-                  <ShieldCheck className={`w-3.5 h-3.5 shrink-0 ${activeRole === 'PEER_VERIFIER' ? 'text-[#8B5CF6]' : ''}`} />
-                  <span className="whitespace-nowrap">Peer Verifier</span>
+                  <ShieldCheck className="w-3 h-3" />
+                  <span>Peer</span>
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
@@ -206,3 +337,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
+

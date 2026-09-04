@@ -1,3 +1,17 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="180" y2="180">
+      <stop offset="0%" stop-color="#065F46"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="tree" x1="90" y1="20" x2="90" y2="160">
+      <stop offset="0%" stop-color="#34D399"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="36" fill="url(#bg)"/>
+  <!-- Tree Crown -->
+  <path d="M90 25 L130 75 L115 75 L140 110 L120 110 L145 145 L35 145 L60 110 L40 110 L65 75 L50 75 Z" fill="url(#tree)" opacity="0.95"/>
+  <!-- Trunk -->
+  <rect x="82" y="145" width="16" height="20" rx="3" fill="#A78B5B"/>
 </svg>

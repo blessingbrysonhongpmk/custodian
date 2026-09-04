@@ -90,33 +90,32 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
     return [13.0605, 80.2290];
   }, [filteredTrees]);
 
-  // Create a custom DivIcon based on tree status
+  // Create a custom DivIcon based on tree status (GREEN = Alive, YELLOW = At Risk, RED = Dead, GRAY = Not Found)
   const createCustomIcon = (tree: Tree) => {
     let colorClass = 'bg-emerald-500 shadow-emerald-500/50';
     let ringClass = 'ring-emerald-200';
     
-    // Determine color based on custody and health
-    if (tree.status === 'at-risk') {
-      colorClass = 'bg-red-500 shadow-red-500/50';
-      ringClass = 'ring-red-200';
-    } else if (tree.status === 'orphaned') {
-      colorClass = 'bg-gray-400 shadow-gray-400/50';
-      ringClass = 'ring-gray-200';
-    } else if (tree.healthScore < 80) {
-      colorClass = 'bg-orange-500 shadow-orange-500/50';
-      ringClass = 'ring-orange-200';
-    } else if (tree.healthScore < 90) {
-      colorClass = 'bg-amber-500 shadow-amber-500/50';
+    if (tree.status === 'failed') {
+      colorClass = 'bg-rose-600 shadow-rose-600/50';
+      ringClass = 'ring-rose-200';
+    } else if (tree.status === 'at-risk') {
+      colorClass = 'bg-amber-400 shadow-amber-400/50';
       ringClass = 'ring-amber-200';
+    } else if (tree.status === 'orphaned' || (tree as any).status === 'not_found') {
+      colorClass = 'bg-slate-400 shadow-slate-400/50';
+      ringClass = 'ring-slate-200';
+    } else {
+      colorClass = 'bg-emerald-500 shadow-emerald-500/50';
+      ringClass = 'ring-emerald-200';
     }
 
-    // Only pulse at-risk or urgent trees
-    const shouldPulse = tree.status === 'at-risk' || tree.healthScore < 70;
+    // Only pulse at-risk trees
+    const shouldPulse = tree.status === 'at-risk';
 
     const htmlString = `
       <div class="relative flex items-center justify-center">
-        ${shouldPulse ? `<div class="absolute -inset-1 rounded-full ${colorClass} opacity-25 animate-ping"></div>` : ''}
-        <div class="relative w-5 h-5 rounded-full border-2 border-white ${colorClass} shadow-lg ring-2 ${ringClass} transition-transform hover:scale-125 z-10"></div>
+        ${shouldPulse ? `<div class="absolute -inset-1 rounded-full ${colorClass} opacity-40 animate-ping"></div>` : ''}
+        <div class="relative w-5 h-5 rounded-full border-2 border-white ${colorClass} shadow-md ring-2 ${ringClass} transition-transform hover:scale-125 z-10"></div>
       </div>
     `;
 
@@ -130,29 +129,40 @@ export const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in">
-      {/* Top Map Summary Panel */}
-      <div className="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex flex-wrap items-center gap-6 text-sm font-semibold text-slate-700">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold text-slate-900">{trees.length}</span>
-          <span className="text-slate-500">Trees Mapped</span>
+    <div className="flex flex-col gap-4 animate-fade-in max-w-7xl mx-auto">
+      {/* Top Map Environmental Summary Panel */}
+      <div className="bg-white p-4 rounded-3xl shadow-2xs border border-slate-200/90 flex flex-wrap items-center justify-between gap-4 text-xs font-semibold text-slate-700">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-700">
+            <MapPin className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-extrabold text-slate-900">Trees Near You</span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black">{trees.length} Trees</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-normal">Environmental GPS ground locator across Tamil Nadu campuses</p>
+          </div>
         </div>
-        <div className="w-px h-8 bg-slate-200" />
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-          <span className="text-emerald-700">{trees.filter(t => t.healthScore >= 90).length} Active Custody</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-          <span className="text-amber-700">{trees.filter(t => t.healthScore >= 80 && t.healthScore < 90).length} Custody Expiring</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />
-          <span className="text-orange-700">{trees.filter(t => t.healthScore < 80).length} Handoff Required</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-          <span className="text-red-700">{trees.filter(t => t.status === 'at-risk').length} Urgent</span>
+
+        {/* Legend */}
+        <div className="flex items-center gap-4 flex-wrap text-[11px]">
+          <div className="flex items-center gap-1.5 font-bold text-emerald-700">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" />
+            <span>Green = Alive</span>
+          </div>
+          <div className="flex items-center gap-1.5 font-bold text-amber-700">
+            <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-xs" />
+            <span>Yellow = At Risk</span>
+          </div>
+          <div className="flex items-center gap-1.5 font-bold text-rose-700">
+            <div className="w-2.5 h-2.5 rounded-full bg-rose-600 shadow-xs" />
+            <span>Red = Dead</span>
+          </div>
+          <div className="flex items-center gap-1.5 font-bold text-slate-600">
+            <div className="w-2.5 h-2.5 rounded-full bg-slate-400 shadow-xs" />
+            <span>Gray = Not Found</span>
+          </div>
         </div>
       </div>
 

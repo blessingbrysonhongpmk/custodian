@@ -50,7 +50,7 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
       </div>
 
       {/* Official Audit Document Paper Layout */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 sm:p-14 shadow-sm space-y-12 relative overflow-hidden print:border-none print:shadow-none print:p-0">
+      <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 sm:p-14 shadow-sm space-y-12 relative overflow-hidden print:border-none print:shadow-none print:p-0 tn-watermark">
         
         {/* Subtle Watermark */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none">
@@ -58,26 +58,31 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
         </div>
 
         {/* Document Header */}
-        <div className="flex flex-col sm:flex-row items-start justify-between border-b border-slate-200 pb-8 gap-6 relative z-10">
+        <div className="flex flex-col sm:flex-row items-start justify-between border-b-2 pb-8 gap-6 relative z-10" style={{ borderImage: 'linear-gradient(90deg, #064E3B, #059669, #10B981, #059669, #064E3B) 1' }}>
           <div className="space-y-3 max-w-xl">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-6 h-6 text-emerald-600" />
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                TreeGuard Verified Impact
-              </span>
+            <div className="flex items-center gap-3">
+              <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-10 h-10" />
+              <div>
+                <span className="text-sm font-bold text-emerald-800 uppercase tracking-widest block">
+                  Vanam Kuri • வனம் குறி
+                </span>
+                <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Government of Tamil Nadu • Verified Impact
+                </span>
+              </div>
             </div>
             <h1 className="text-4xl sm:text-5xl font-serif font-black text-slate-900 leading-tight">
-              Institutional Climate Impact Report
+              Tamil Nadu Climate Impact Report
             </h1>
             <p className="text-base text-slate-600 font-medium">
-              Loyola Sustainability Initiative 2024–2027 • <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded">GTN-CAMPUS-2024-500</span>
+              Green Tamil Nadu Mission 2024–2027 • <span className="font-mono text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded">GTN-TN-2024-500</span>
             </p>
           </div>
 
-          <div className="text-left sm:text-right font-mono text-sm text-slate-500 space-y-1 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <div className="text-left sm:text-right font-mono text-sm text-slate-500 space-y-1 bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100">
             <p><strong>Date:</strong> {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
             <p><strong>Cycle:</strong> 6-Month Verification</p>
-            <p className="text-emerald-700 font-bold mt-2 pt-2 border-t border-slate-200">
+            <p className="text-emerald-700 font-bold mt-2 pt-2 border-t border-emerald-200">
               Hash: 0x9b44c...2f01a
             </p>
           </div>
@@ -221,18 +226,19 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
         </div>
 
         {/* Closing Philosophical Manifesto */}
-        <div className="p-8 sm:p-10 rounded-[2rem] bg-emerald-950 text-emerald-50 space-y-4 relative overflow-hidden z-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-900 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="p-8 sm:p-10 rounded-[2rem] bg-[#052E1F] text-emerald-50 space-y-4 relative overflow-hidden z-10">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#064E3B] rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#047857] rounded-full blur-3xl opacity-30 translate-y-1/3 -translate-x-1/4 pointer-events-none" />
           
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-widest relative z-10">
+          <div className="flex items-center gap-2 text-[#34D399] font-bold text-xs uppercase tracking-widest relative z-10">
             <Award className="w-4 h-4" />
             Core Philosophy & Mission Standard
           </div>
           <blockquote className="text-xl sm:text-2xl font-serif text-white leading-relaxed relative z-10 max-w-3xl">
-            “TreeGuard doesn’t measure how many trees we planted. It measures whether we took responsibility for keeping them alive.”
+            “Vanam Kuri doesn't measure how many trees we planted. It measures whether we took responsibility for keeping them alive.”
           </blockquote>
-          <p className="text-xs text-emerald-500/80 font-medium tracking-wide uppercase mt-4 relative z-10">
-            Certified by Independent Verification Framework.
+          <p className="text-xs text-[#6EE7B7]/70 font-medium tracking-wide uppercase mt-4 relative z-10">
+            Certified by Government of Tamil Nadu • Independent Verification Framework.
           </p>
         </div>
 
@@ -251,13 +257,14 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
           </div>
 
           <div className="space-y-2 col-span-2 sm:col-span-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verification Seal</span>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Government Verification</span>
             <div className="h-12 flex items-end pb-2">
-              <span className="px-3 py-1.5 rounded-lg border-2 border-emerald-600 text-emerald-700 font-bold text-xs uppercase tracking-widest transform -rotate-2">
-                Verified Survival Pass
+              <span className="px-3 py-1.5 rounded-lg border-2 border-emerald-600 text-emerald-700 font-bold text-xs uppercase tracking-widest transform -rotate-2 flex items-center gap-1.5">
+                <img src="/tn-gov-logo.svg" alt="" className="w-4 h-4" />
+                TN Gov Verified ✓
               </span>
             </div>
-            <p className="text-xs font-mono text-slate-400">Mission ID #7729</p>
+            <p className="text-xs font-mono text-slate-400">Mission ID #7729 • Vanam Kuri</p>
           </div>
         </div>
       </div>

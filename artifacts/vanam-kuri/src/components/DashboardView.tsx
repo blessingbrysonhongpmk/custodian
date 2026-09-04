@@ -55,30 +55,54 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenAutopsy,
 }) => {
   return (
-    <div className="space-y-8 animate-fade-in max-w-6xl mx-auto">
-      {/* Premium Editorial Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-serif text-slate-900 tracking-tight">Forest Overview</h1>
-          <p className="text-sm text-slate-500">
-            {reliability.projectName} · <strong className="text-slate-800">{reliability.totalPlanted} trees</strong> under protection
-          </p>
+    <div className="space-y-6 animate-fade-in max-w-6xl mx-auto">
+      {/* Environmental Command Center Nature Hero Banner */}
+      <div className="relative rounded-3xl overflow-hidden shadow-sm border border-emerald-500/20 bg-emerald-950 min-h-[170px] flex items-center">
+        <img 
+          src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=1600" 
+          alt="Lush green forest canopy" 
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.7] contrast-[1.1]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/70 to-transparent" />
+
+        <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+          <div className="space-y-1.5 text-white">
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest border border-emerald-400/30">
+                State Operational Command
+              </span>
+              <span className="text-xs text-emerald-200/80 font-medium">Government of Tamil Nadu • வனம் குறி</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-sm">
+              TRACK RESPONSIBILITY. PROTECT EVERY TREE.
+            </h1>
+            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl font-medium">
+              {reliability.projectName} · <strong className="text-white font-bold">{reliability.totalPlanted} trees</strong> under multi-party custody tracking.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right">
+              <span className="text-[10px] text-emerald-300 uppercase font-bold block">Verified Survival</span>
+              <span className="text-2xl font-black text-white">{reliability.verifiedSurvivalRate}%</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Asymmetric Metrics Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         {/* Primary Metric */}
-        <div className="md:col-span-5 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300">
-          <div>
+        <div className="md:col-span-5 greenery-card leaf-pattern-overlay rounded-3xl p-8 shadow-sm flex flex-col justify-between hover:-translate-y-1 transition-transform duration-300 animate-canopy-glow">
+          <div className="relative z-10">
             <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
               <Sprout className="w-5 h-5 text-emerald-600" />
             </div>
             <h2 className="text-4xl font-light text-slate-900 mb-1">{reliability.totalPlanted}</h2>
             <p className="text-sm font-medium text-slate-500">Trees Planted</p>
           </div>
-          <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-            <span>Aug 2024 Drive</span>
+          <div className="relative z-10 mt-8 pt-4 border-t border-emerald-200/40 flex items-center justify-between text-xs text-slate-400">
+            <span>Tamil Nadu Green Drive</span>
             <span className="flex items-center gap-1"><TrendingUp className="w-3 h-3 text-emerald-500" /> 100% Traceable</span>
           </div>
         </div>
@@ -265,9 +289,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
       {/* Organization Scorecard (Horizontal Progress) */}
       <div className="space-y-4">
-        <div className="border-b border-slate-200 pb-2">
-          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Performance Scorecard</h3>
-          <p className="text-xs text-slate-500 mt-1">Institutional operational metrics</p>
+        <div className="border-b border-emerald-200/40 pb-2">
+          <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+            <span className="text-emerald-600">🌿</span> Performance Scorecard
+          </h3>
+          <p className="text-xs text-slate-500 mt-1">Tamil Nadu institutional operational metrics</p>
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-2">

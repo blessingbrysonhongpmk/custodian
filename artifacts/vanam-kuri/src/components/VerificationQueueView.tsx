@@ -32,36 +32,36 @@ export const VerificationQueueView: React.FC<VerificationQueueViewProps> = ({
 
   return (
     <div className="space-y-6 animate-fade-in max-w-5xl mx-auto">
-      {/* Header Banner */}
-      <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+      {/* Header Banner - Deep Forest Green */}
+      <div className="bg-[#062817] text-white rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden border border-emerald-500/20">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-blue-500/20 text-blue-300 border border-blue-500/30 shadow-inner">
+              <span className="px-3 py-1 rounded-full text-[10px] font-extrabold tracking-widest uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 Peer Verifier Role
               </span>
-              <span className="text-xs font-semibold text-blue-400 flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4" /> Trusted Auditor
+              <span className="text-xs font-semibold text-emerald-300 flex items-center gap-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" /> Ground Truth Auditor
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-serif font-black tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Verification Queue
             </h1>
-            <p className="text-sm text-slate-400 max-w-md">
-              Review self-reported custodian photos against AI analysis for ground-truth survival validation.
+            <p className="text-xs sm:text-sm text-emerald-100/80 max-w-md">
+              Review self-reported custodian evidence against on-site reference landmarks for human accountability.
             </p>
           </div>
           
-          <div className="flex items-center gap-4 text-center">
-            <div className="bg-slate-800/80 p-5 rounded-2xl border border-slate-700 shadow-inner">
-              <span className="text-4xl font-black text-white">{pendingVerifications.length}</span>
-              <span className="block text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Pending</span>
+          <div className="flex items-center gap-3 text-center">
+            <div className="bg-white/10 backdrop-blur-md px-5 py-3.5 rounded-2xl border border-white/10 shadow-xs">
+              <span className="text-3xl font-black text-white">{pendingVerifications.length}</span>
+              <span className="block text-[10px] font-bold text-emerald-300 mt-0.5 uppercase tracking-widest">Pending</span>
             </div>
-            <div className="bg-emerald-500/10 p-5 rounded-2xl border border-emerald-500/20 shadow-inner">
-              <span className="text-4xl font-black text-emerald-400">14</span>
-              <span className="block text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">Cleared Today</span>
+            <div className="bg-emerald-500/20 px-5 py-3.5 rounded-2xl border border-emerald-400/30 shadow-xs">
+              <span className="text-3xl font-black text-emerald-300">14</span>
+              <span className="block text-[10px] font-bold text-emerald-200 mt-0.5 uppercase tracking-widest">Verified Today</span>
             </div>
           </div>
         </div>

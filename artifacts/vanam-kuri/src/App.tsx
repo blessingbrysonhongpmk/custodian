@@ -38,6 +38,7 @@ import { CustodyHandoffModal } from './components/CustodyHandoffModal';
 import { PeerVerificationModal } from './components/PeerVerificationModal';
 import { FailureAutopsyModal } from './components/FailureAutopsyModal';
 import { RegisterTreeModal } from './components/RegisterTreeModal';
+import { Search, Bell, Menu, User, ShieldCheck } from 'lucide-react';
 
 export default function App() {
   // API-driven state with mock data fallback
@@ -46,9 +47,10 @@ export default function App() {
   const [riskItems, setRiskItems] = useState<RiskItem[]>(mockRiskQueue);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [apiConnected, setApiConnected] = useState<boolean>(false);
+  const [globalSearch, setGlobalSearch] = useState<string>('');
   
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [activeRole, setActiveRole] = useState<ActiveRole>('ADMIN');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('custodian-view');
+  const [activeRole, setActiveRole] = useState<ActiveRole>('CUSTODIAN');
   const [selectedTreeId, setSelectedTreeId] = useState<string>('TG-IND-001');
   const [demoStep, setDemoStep] = useState<number>(0);
 
@@ -297,11 +299,11 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-[#fcfbf9] text-slate-900 flex flex-row antialiased overflow-hidden">
+    <div className="h-screen nature-bg text-slate-900 flex flex-row antialiased overflow-hidden">
       {/* Top Floating Notification Toast */}
       {notificationToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl border border-emerald-400 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-[#052E1F] text-white px-5 py-2.5 rounded-2xl shadow-xl border border-[#34D399]/40 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
+          <span className="w-2 h-2 rounded-full bg-[#34D399] animate-ping" />
           <span>{notificationToast}</span>
         </div>
       )}
@@ -317,15 +319,74 @@ export default function App() {
       />
 
       {/* Main Content Body */}
-      <main className="flex-1 min-w-0 overflow-y-auto relative">
+      <main className="flex-1 min-w-0 overflow-y-auto relative flex flex-col">
         {/* API Connection Status */}
         {!apiConnected && (
-          <div className="bg-amber-50 border-b border-amber-200 text-amber-800 text-xs text-center py-1.5 px-4 font-medium sticky top-0 z-10">
+          <div className="bg-amber-50/90 border-b border-amber-200 text-amber-900 text-xs text-center py-1.5 px-4 font-medium sticky top-0 z-30 backdrop-blur-sm">
             📡 Running with demo data — Start the API server ({`pnpm run dev:api`}) and database for live data
           </div>
         )}
 
-        <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
+        {/* Universal Top Navigation Header (from reference screenshot) */}
+        <header className="px-6 py-3.5 flex items-center justify-between gap-4 border-b border-emerald-900/5 bg-white/70 backdrop-blur-md sticky top-0 z-20 shadow-xs">
+          <div className="flex items-center gap-3 flex-1 max-w-xl">
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder="Search trees, ID, locations..." 
+                value={globalSearch}
+                onChange={(e) => setGlobalSearch(e.target.value)}
+                className="w-full bg-white pl-10 pr-4 py-2 rounded-xl text-xs font-medium border border-slate-200/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 shadow-2xs transition-all placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Notification Bell */}
+            <button 
+              onClick={() => setActiveTab('risk-center')}
+              className="relative p-2 rounded-xl bg-white border border-slate-200/90 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 transition-colors shadow-2xs"
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold flex items-center justify-center border-2 border-white">
+                4
+              </span>
+            </button>
+
+            {/* User Profile Chip */}
+            <div 
+              onClick={() => {
+                if (activeRole === 'CUSTODIAN') {
+                  handleSelectRole('ADMIN');
+                } else if (activeRole === 'ADMIN') {
+                  handleSelectRole('PEER_VERIFIER');
+                } else {
+                  handleSelectRole('CUSTODIAN');
+                }
+              }}
+              className="flex items-center gap-2.5 bg-white pl-1.5 pr-3 py-1 rounded-full border border-slate-200/90 shadow-2xs cursor-pointer hover:border-emerald-300 transition-colors"
+              title="Click to cycle role simulation"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" 
+                alt="Arun K." 
+                className="w-7 h-7 rounded-full object-cover border border-emerald-500/30"
+              />
+              <div className="text-left">
+                <p className="text-xs font-bold text-slate-800 leading-tight">
+                  {activeRole === 'ADMIN' ? 'State Admin' : activeRole === 'PEER_VERIFIER' ? 'Suresh R.' : 'Arun K.'}
+                </p>
+                <p className="text-[10px] text-emerald-700 font-medium leading-none mt-0.5">
+                  {activeRole === 'ADMIN' ? 'Org Admin' : activeRole === 'PEER_VERIFIER' ? 'Peer Verifier' : 'Custodian'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6 flex-1 w-full">
           {/* 3-Minute Hackathon Demo Script Bar */}
           <DemoScenarioRunner
             currentStep={demoStep}
@@ -409,6 +470,7 @@ export default function App() {
             }}
             onOpenHandoff={(tree) => setHandoffModalTree(tree)}
             onOpenVerification={(tree) => setVerificationModalTree(tree)}
+            onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
             simulatedCustodian="Arun K."
           />
         )}
@@ -433,13 +495,23 @@ export default function App() {
           />
         )}
 
-        {/* Footer */}
-        <footer className="mt-16 py-8 border-t border-slate-200/60 text-xs text-slate-400 text-center space-y-1">
-          <p className="font-semibold text-slate-500">
-            TREEGUARD • Every tree has a caretaker. Every caretaker has a successor.
+        {/* Footer with TN Government Branding */}
+        <footer className="mt-16 py-8 border-t-2 text-xs text-slate-400 text-center space-y-3" style={{ borderImage: 'linear-gradient(90deg, transparent, #059669, #10B981, #059669, transparent) 1' }}>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-8 h-8 opacity-60" />
+            <div>
+              <p className="font-bold text-emerald-800 text-sm tracking-wide">VANAM KURI • வனம் குறி</p>
+              <p className="text-[10px] text-slate-500 font-medium">Government of Tamil Nadu • தமிழ்நாடு அரசு</p>
+            </div>
+          </div>
+          <p className="font-semibold text-emerald-700/70">
+            Every tree has a caretaker. Every caretaker has a successor.
           </p>
-          <p>
+          <p className="text-slate-400">
             No tree left behind. • AI-assisted verification. Human accountability.
+          </p>
+          <p className="text-[10px] text-slate-300 mt-2">
+            © {new Date().getFullYear()} Department of Environment & Climate Change, Government of Tamil Nadu
           </p>
         </footer>
       </div>
