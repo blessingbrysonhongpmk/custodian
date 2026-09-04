@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Tree } from '../types/custodia';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   TreePine, 
   Users, 
@@ -148,6 +149,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
   onOpenRegisterTree,
   simulatedCustodian = "Arun K.",
 }) => {
+  const { language, t } = useLanguage();
+
   // Navigation Tabs state: Internal to Custodian page only
   const [activeTab, setActiveTab] = useState<'my-trees' | 'friends-trees' | 'verifications' | 'handover' | 'activity'>('my-trees');
 
@@ -849,14 +852,14 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
             <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 w-full">
               <div className="space-y-1.5 max-w-lg text-white">
                 <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2 drop-shadow-sm">
-                  <span>You Care,</span>
+                  <span>{t('heroTitle')}</span>
                   <Leaf className="w-7 h-7 text-emerald-400 inline-block fill-emerald-400" />
                 </h2>
                 <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">
-                  They Grow.
+                  {t('heroTitleHighlight')}
                 </h3>
                 <p className="text-xs sm:text-sm text-emerald-100 font-medium max-w-md pt-1 drop-shadow-sm">
-                  Every checkpoint. Every update. A better tomorrow.
+                  {t('heroSubtitle')}
                 </p>
 
                 <div className="pt-3">
@@ -864,8 +867,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                     onClick={() => setRecordMaintenanceTree(myTreesData[0])}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
                   >
-                    <span>Record Update</span>
-                    <Leaf className="w-3.5 h-3.5 fill-current" />
+                    <span>{t('heroRecordUpdate')}</span>
                   </button>
                 </div>
               </div>
@@ -875,9 +877,9 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-1.5">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Trust Score</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('trustScoreLabel')}</span>
                 <div className="text-3xl font-black text-slate-900 tracking-tight mt-0.5">{profile.trustScore}%</div>
-                <span className="text-[11px] font-extrabold text-emerald-600 block mt-0.5">Great Job!</span>
+                <span className="text-[11px] font-extrabold text-emerald-600 block mt-0.5">{t('trustScoreBadge')}</span>
               </div>
             </div>
           </div>
@@ -893,8 +895,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <TreePine className="w-4 h-4" />
               </div>
               <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{profile.myTreesCount}</div>
-              <div className="text-xs font-bold text-slate-800 mt-0.5">My Trees</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">Under your care</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{t('statMyTrees')}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{t('statMyTreesSub')}</div>
             </div>
 
             {/* Card 2: Friends' Trees */}
@@ -906,8 +908,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <Users className="w-4 h-4" />
               </div>
               <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{profile.friendsTreesCount}</div>
-              <div className="text-xs font-bold text-slate-800 mt-0.5">Friends' Trees</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">You can view & help</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{t('statFriendsTrees')}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{t('statFriendsTreesSub')}</div>
             </div>
 
             {/* Card 3: Verifications Done */}
@@ -919,8 +921,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <CheckCircle2 className="w-4 h-4" />
               </div>
               <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{profile.verificationsDoneCount}</div>
-              <div className="text-xs font-bold text-slate-800 mt-0.5">Verifications Done</div>
-              <div className="text-[10px] text-slate-400 mt-0.5">This month</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{t('statVerifications')}</div>
+              <div className="text-[10px] text-slate-400 mt-0.5">{t('statVerificationsSub')}</div>
             </div>
 
             {/* Card 4: Pending Tasks */}
@@ -935,8 +937,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 {profile.pendingTasksCount}
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
               </div>
-              <div className="text-xs font-bold text-slate-800 mt-0.5">Pending Tasks</div>
-              <div className="text-[10px] text-amber-700 font-semibold mt-0.5">Action required</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{t('statPendingTasks')}</div>
+              <div className="text-[10px] text-amber-700 font-semibold mt-0.5">{t('statPendingTasksSub')}</div>
             </div>
 
             {/* Card 5: Custody Continuity */}
@@ -945,8 +947,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{profile.continuityRate}%</div>
-              <div className="text-xs font-bold text-slate-800 mt-0.5">Custody Continuity</div>
-              <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">Great consistency</div>
+              <div className="text-xs font-bold text-slate-800 mt-0.5">{t('statContinuity')}</div>
+              <div className="text-[10px] text-emerald-700 font-semibold mt-0.5">{t('statContinuitySub')}</div>
             </div>
           </div>
 
@@ -954,11 +956,11 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/80 p-1.5 shadow-sm">
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
               {[
-                { id: 'my-trees', label: 'My Trees', icon: TreePine, count: profile.myTreesCount },
-                { id: 'friends-trees', label: "Friends' Trees", icon: Users, count: profile.friendsTreesCount },
-                { id: 'verifications', label: 'All My Verifications', icon: CheckCircle2, count: profile.verificationsDoneCount },
-                { id: 'handover', label: 'Handover Requests', icon: ArrowRightLeft, count: handoverRequests.length, hasAlert: true },
-                { id: 'activity', label: 'Activity Feed', icon: Activity },
+                { id: 'my-trees', label: t('tabMyTrees'), icon: TreePine, count: profile.myTreesCount },
+                { id: 'friends-trees', label: t('tabFriendsTrees'), icon: Users, count: profile.friendsTreesCount },
+                { id: 'verifications', label: t('tabVerifications'), icon: CheckCircle2, count: profile.verificationsDoneCount },
+                { id: 'handover', label: t('tabHandovers'), icon: ArrowRightLeft, count: handoverRequests.length, hasAlert: true },
+                { id: 'activity', label: t('tabActivity'), icon: Activity },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
@@ -1005,7 +1007,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search tree by ID, name or location..."
+                    placeholder={t('searchFilterPlaceholder')}
                     className="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 text-slate-800 placeholder-slate-400 font-medium"
                   />
                   {searchQuery && (
@@ -1025,9 +1027,9 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    <option value="ALL">All Status</option>
-                    <option value="ALIVE">Alive / Verified</option>
-                    <option value="AT_RISK">At Risk</option>
+                    <option value="ALL">{t('filterAllStatus')}</option>
+                    <option value="ALIVE">{t('statusAlive')}</option>
+                    <option value="AT_RISK">{t('statusAtRisk')}</option>
                   </select>
 
                   {/* Filter Campuses */}
@@ -1036,7 +1038,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                     onChange={(e) => setLocationFilter(e.target.value)}
                     className="px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    <option value="ALL">All Campuses</option>
+                    <option value="ALL">{t('filterAllLocations')}</option>
                     <option value="Block A">Block A</option>
                     <option value="Block B">Block B</option>
                     <option value="Sports Ground">Sports Ground</option>
@@ -1048,7 +1050,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                     onChange={(e) => setSortBy(e.target.value as any)}
                     className="px-3 py-2 rounded-xl text-xs bg-slate-50 border border-slate-200 font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                   >
-                    <option value="recent">Sort: Recently Updated</option>
+                    <option value="recent">{t('sortRecentlyUpdated')}</option>
                     <option value="health">Sort: Health Score</option>
                     <option value="checkpoint">Sort: Next Due</option>
                   </select>
@@ -1109,11 +1111,11 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                               {tree.status === 'ALIVE' ? (
                                 <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-emerald-700 text-white shadow-sm flex items-center gap-1">
                                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                                  Alive
+                                  {t('statusAlive')}
                                 </span>
                               ) : (
                                 <span className="px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-600 text-white shadow-sm flex items-center gap-1">
-                                  At Risk
+                                  {t('statusAtRisk')}
                                 </span>
                               )}
                             </div>
@@ -1128,14 +1130,14 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                               onClick={() => setInspectTree(tree)}
                               className="text-sm font-extrabold text-slate-900 hover:text-emerald-700 cursor-pointer"
                             >
-                              {tree.speciesName}
+                              {language === 'ta' ? `${tree.tamilName} • ${tree.speciesName}` : tree.speciesName}
                             </h3>
                             <div className="text-xs text-slate-500 truncate max-w-[200px]">
                               {tree.location}
                             </div>
                             <div className="pt-0.5">
                               <span className="inline-block px-2 py-0.2 rounded-md bg-slate-100 text-slate-600 text-[10px] font-bold">
-                                Native
+                                {t('badgeNative')}
                               </span>
                             </div>
                           </div>
@@ -1143,23 +1145,23 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
 
                         {/* Column 2: Planted On */}
                         <div className="min-w-[100px] shrink-0 text-left">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Planted On</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('labelPlantedOn')}</span>
                           <span className="text-xs font-bold text-slate-800 mt-0.5 block">{tree.plantedDate}</span>
                         </div>
 
                         {/* Column 3: Next Checkpoint */}
                         <div className="min-w-[120px] shrink-0 text-left">
-                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Next Checkpoint</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('labelNextCheckpoint')}</span>
                           <span className="text-xs font-bold text-slate-800 mt-0.5 block">{tree.nextCheckpointDate}</span>
                           <span className={`text-[11px] font-extrabold block mt-0.5 ${isAtRisk ? 'text-amber-700' : 'text-emerald-600'}`}>
-                            {tree.nextCheckpointRelative}
+                            {tree.isUrgent ? t('dueTomorrow') : tree.nextCheckpointRelative}
                           </span>
                         </div>
 
                         {/* Column 4: Health Score Progress Bar */}
                         <div className="w-24 shrink-0 text-left">
                           <div className="flex items-center justify-between text-xs mb-1">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Health</span>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">{t('labelHealthScore')}</span>
                             <span className={`font-extrabold ${isAtRisk ? 'text-amber-700' : 'text-emerald-700'}`}>{tree.healthScore}%</span>
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
@@ -1178,7 +1180,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                               className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm flex items-center gap-1.5"
                             >
                               <Camera className="w-3.5 h-3.5" />
-                              <span>Verify Tree</span>
+                              <span>{t('btnVerifyTree')}</span>
                             </button>
                           ) : (
                             <button
@@ -1186,7 +1188,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                               className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1"
                             >
                               <Droplets className="w-3.5 h-3.5" />
-                              <span>Record Update</span>
+                              <span>{t('btnRecordUpdate')}</span>
                             </button>
                           )}
 
@@ -1211,20 +1213,20 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                       {/* Responsibility Chain / Landmark Footer Bar */}
                       <div className="mt-3 pt-2.5 border-t border-slate-100/90 flex items-center justify-between text-[11px] text-slate-500 overflow-x-auto scrollbar-hide">
                         <div className="flex items-center gap-1.5 font-medium shrink-0">
-                          <span className="font-bold text-slate-700">Responsibility Chain:</span>
-                          <span className="text-emerald-700 font-semibold">Planted</span>
+                          <span className="font-bold text-slate-700">{language === 'ta' ? 'பொறுப்புச் சங்கிலி:' : 'Responsibility Chain:'}</span>
+                          <span className="text-emerald-700 font-semibold">{t('badgePlanted')}</span>
                           <span>→</span>
-                          <span className="text-emerald-700 font-semibold">Assigned (Arun K.)</span>
+                          <span className="text-emerald-700 font-semibold">{language === 'ta' ? 'ஒதுக்கப்பட்டது (அருண்)' : 'Assigned (Arun K.)'}</span>
                           <span>→</span>
-                          <span className="text-emerald-700 font-semibold">Peer Verified</span>
+                          <span className="text-emerald-700 font-semibold">{language === 'ta' ? 'சரிபார்க்கப்பட்டது' : 'Peer Verified'}</span>
                           <span>→</span>
-                          <span className={isAtRisk ? "text-amber-700 font-bold underline" : "text-slate-600"}>Next Checkpoint</span>
+                          <span className={isAtRisk ? "text-amber-700 font-bold underline" : "text-slate-600"}>{t('labelNextCheckpoint')}</span>
                         </div>
                         <button
                           onClick={() => setInspectTree(tree)}
                           className="text-[10px] font-bold text-emerald-700 hover:underline shrink-0 ml-3"
                         >
-                          View Full Passport →
+                          {language === 'ta' ? 'முழு பாஸ்போர்ட் காண்க →' : 'View Full Passport →'}
                         </button>
                       </div>
                     </div>
@@ -1625,8 +1627,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-emerald-100/60 text-emerald-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <Plus className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Add / Register</div>
-                  <div className="text-[9px] text-slate-400">Tree ▾</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionAddTree')}</div>
+                  <div className="text-[9px] text-slate-400">▾</div>
                 </button>
 
                 {/* Record Update */}
@@ -1637,8 +1639,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-blue-100/60 text-blue-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Record</div>
-                  <div className="text-[9px] text-slate-400">Maintenance</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionRecordMaintenance')}</div>
+                  <div className="text-[9px] text-slate-400">▾</div>
                 </button>
 
                 {/* Verify Tree */}
@@ -1649,8 +1651,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <Camera className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Verify</div>
-                  <div className="text-[9px] text-amber-800 font-semibold">Tree ▾</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionVerifyTree')}</div>
+                  <div className="text-[9px] text-amber-800 font-semibold">▾</div>
                 </button>
 
                 {/* Report Issue */}
@@ -1661,8 +1663,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-red-100/60 text-red-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <AlertTriangle className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Report Tree</div>
-                  <div className="text-[9px] text-slate-400">Issue ▾</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionReportIssue')}</div>
+                  <div className="text-[9px] text-slate-400">▾</div>
                 </button>
 
                 {/* Handover Tree */}
@@ -1673,8 +1675,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-purple-100/60 text-purple-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <ArrowRightLeft className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Handover</div>
-                  <div className="text-[9px] text-slate-400">Tree ▾</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionHandover')}</div>
+                  <div className="text-[9px] text-slate-400">▾</div>
                 </button>
 
                 {/* Request Support */}
@@ -1685,8 +1687,8 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
                     <HelpCircle className="w-3.5 h-3.5" />
                   </div>
-                  <div className="text-[11px] font-bold leading-tight">Request</div>
-                  <div className="text-[9px] text-slate-400">Support</div>
+                  <div className="text-[11px] font-bold leading-tight">{t('actionSupport')}</div>
+                  <div className="text-[9px] text-slate-400">▾</div>
                 </button>
               </div>
             </div>
@@ -1696,9 +1698,9 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
               <div className="relative z-10 space-y-1">
                 <div className="flex items-center gap-1.5 text-emerald-300">
                   <MapPin className="w-4 h-4 text-emerald-400" />
-                  <h5 className="font-extrabold text-sm text-white">Find Nearby Trees</h5>
+                  <h5 className="font-extrabold text-sm text-white">{t('findNearbyTitle')}</h5>
                 </div>
-                <p className="text-[11px] text-emerald-200/90 font-medium">Explore trees in your area</p>
+                <p className="text-[11px] text-emerald-200/90 font-medium">{t('findNearbySubtitle')}</p>
               </div>
 
               <div className="relative z-10 pt-3">
@@ -1707,7 +1709,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                   className="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                 >
                   <MapPin className="w-3.5 h-3.5" />
-                  <span>Open Map View</span>
+                  <span>{t('btnOpenMap')}</span>
                 </button>
               </div>
             </div>
@@ -1724,13 +1726,13 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-900">
-                My Profile
+                {t('myProfileTitle')}
               </h3>
               <button
                 onClick={() => setIsEditProfileOpen(true)}
                 className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
               >
-                Edit Profile
+                {t('editProfile')}
               </button>
             </div>
 
@@ -1748,19 +1750,21 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
               </div>
 
               <div>
-                <h4 className="text-base font-extrabold text-slate-900">{profile.name}</h4>
-                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-[10px] mt-1 border border-emerald-200">
-                  <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                  Verified Custodian
-                </div>
+                <h4 className="font-extrabold text-base text-slate-900 leading-tight">
+                  {language === 'ta' ? 'அருண் கே.' : profile.name}
+                </h4>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-1 border border-emerald-200">
+                  <UserCheck className="w-3 h-3" />
+                  {t('verifiedCustodian')}
+                </span>
               </div>
             </div>
 
-            {/* Profile Detail List */}
-            <div className="space-y-2.5 pt-2 border-t border-slate-100 text-xs text-slate-600">
+            {/* Profile Meta Details */}
+            <div className="pt-2 border-t border-slate-100 space-y-2 text-xs text-slate-600">
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="font-medium text-slate-700 truncate">{profile.email}</span>
+                <span className="truncate font-medium text-slate-700">{profile.email}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-slate-400 shrink-0" />
@@ -1772,11 +1776,11 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
               </div>
               <div className="flex items-center gap-2.5">
                 <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="font-medium text-slate-700">Custodian ID: CUST-2025-0178</span>
+                <span className="font-medium text-slate-700">{t('custodianId')}: CUST-2025-0178</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="font-medium text-slate-700">Member since {profile.memberSince}</span>
+                <span className="font-medium text-slate-700">{t('memberSince')} {profile.memberSince}</span>
               </div>
             </div>
           </div>
@@ -1784,27 +1788,27 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
           {/* 12. MY IMPACT PANEL (Section 12 - from reference screenshot) */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-4">
             <div className="border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-bold text-slate-900">My Impact</h3>
-              <p className="text-xs text-slate-500 font-medium">This is your green impact! 🌿</p>
+              <h3 className="text-sm font-bold text-slate-900">{t('myImpactTitle')}</h3>
+              <p className="text-xs text-slate-500 font-medium">{t('myImpactSubtitle')}</p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="p-3.5 rounded-2xl bg-amber-50/50 border border-amber-200/60 text-center">
                 <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-amber-900 uppercase mb-1">
                   <Droplets className="w-3 h-3 text-amber-600" />
-                  CO₂ Absorbed
+                  {t('co2Absorbed')}
                 </div>
                 <div className="text-xl font-extrabold text-slate-900">{profile.co2Kg} kg</div>
-                <div className="text-[10px] text-slate-400 font-medium mt-0.5">Estimated</div>
+                <div className="text-[10px] text-slate-400 font-medium mt-0.5">{t('estimated')}</div>
               </div>
 
               <div className="p-3.5 rounded-2xl bg-emerald-50/50 border border-emerald-200/60 text-center">
                 <div className="flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-900 uppercase mb-1">
                   <Sparkles className="w-3 h-3 text-emerald-600" />
-                  O₂ Generated
+                  {t('o2Generated')}
                 </div>
                 <div className="text-xl font-extrabold text-slate-900">{profile.o2Kg} kg</div>
-                <div className="text-[10px] text-slate-400 font-medium mt-0.5">Estimated</div>
+                <div className="text-[10px] text-slate-400 font-medium mt-0.5">{t('estimated')}</div>
               </div>
             </div>
 
@@ -1813,14 +1817,14 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 <TreePine className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <div>
                   <span className="font-extrabold text-slate-900 block">{profile.myTreesCount}</span>
-                  <span className="text-[10px] text-slate-500">Trees Under Care</span>
+                  <span className="text-[10px] text-slate-500">{t('treesUnderCare')}</span>
                 </div>
               </div>
               <div className="flex items-center gap-1.5 p-2 rounded-xl bg-slate-50">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 <div>
                   <span className="font-extrabold text-slate-900 block">{profile.verificationsDoneCount}</span>
-                  <span className="text-[10px] text-slate-500">Checkpoints Done</span>
+                  <span className="text-[10px] text-slate-500">{t('checkpointsDone')}</span>
                 </div>
               </div>
             </div>
@@ -1830,7 +1834,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 onClick={() => setIsImpactMethodologyOpen(true)}
                 className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <span>View Impact Details</span>
+                <span>{t('viewImpactDetails')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -1839,12 +1843,12 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
           {/* 15. PENDING TASKS PANEL (Section 15 - from reference screenshot) */}
           <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-2xs space-y-3.5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 className="text-sm font-bold text-slate-900">Pending Tasks</h3>
+              <h3 className="text-sm font-bold text-slate-900">{t('pendingTasksTitle')}</h3>
               <button
                 onClick={() => setActiveTab('my-trees')}
                 className="text-xs font-bold text-emerald-700 hover:underline cursor-pointer"
               >
-                View All
+                {t('viewAll')}
               </button>
             </div>
 

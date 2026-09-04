@@ -38,9 +38,12 @@ import { CustodyHandoffModal } from './components/CustodyHandoffModal';
 import { PeerVerificationModal } from './components/PeerVerificationModal';
 import { FailureAutopsyModal } from './components/FailureAutopsyModal';
 import { RegisterTreeModal } from './components/RegisterTreeModal';
-import { Search, Bell, Menu, User, ShieldCheck } from 'lucide-react';
+import { Search, Bell, Menu, User, ShieldCheck, Globe } from 'lucide-react';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
-export default function App() {
+function MainContent() {
+  const { language, toggleLanguage, t } = useLanguage();
+
   // API-driven state with mock data fallback
   const [trees, setTrees] = useState<Tree[]>(sampleTrees);
   const [reliability, setReliability] = useState<OrganizationReliability>(initialReliability);
@@ -334,7 +337,7 @@ export default function App() {
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input 
                 type="text" 
-                placeholder="Search trees, ID, locations..." 
+                placeholder={t('searchPlaceholder')} 
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 className="w-full bg-white pl-10 pr-4 py-2 rounded-xl text-xs font-medium border border-slate-200/90 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 shadow-2xs transition-all placeholder:text-slate-400"
@@ -343,11 +346,21 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Tamil / English Switcher */}
+            <button 
+              onClick={toggleLanguage}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-emerald-600/30 hover:bg-emerald-50 text-emerald-800 text-xs font-bold shadow-2xs transition-all cursor-pointer group"
+              title={language === 'ta' ? 'Switch to English' : 'தமிழுக்கு மாறவும்'}
+            >
+              <Globe className="w-3.5 h-3.5 text-emerald-600 group-hover:rotate-12 transition-transform" />
+              <span>{language === 'ta' ? 'English' : 'தமிழ்'}</span>
+            </button>
+
             {/* Notification Bell */}
             <button 
               onClick={() => setActiveTab('risk-center')}
               className="relative p-2 rounded-xl bg-white border border-slate-200/90 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 transition-colors shadow-2xs"
-              title="Notifications"
+              title={t('notifications')}
             >
               <Bell className="w-4 h-4" />
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white text-[9px] font-extrabold flex items-center justify-center border-2 border-white">
@@ -376,10 +389,10 @@ export default function App() {
               />
               <div className="text-left">
                 <p className="text-xs font-bold text-slate-800 leading-tight">
-                  {activeRole === 'ADMIN' ? 'State Admin' : activeRole === 'PEER_VERIFIER' ? 'Suresh R.' : 'Arun K.'}
+                  {activeRole === 'ADMIN' ? (language === 'ta' ? 'மாநில நிர்வாகி' : 'State Admin') : activeRole === 'PEER_VERIFIER' ? (language === 'ta' ? 'சுரேஷ் ஆர்.' : 'Suresh R.') : (language === 'ta' ? 'அருண் கே.' : 'Arun K.')}
                 </p>
                 <p className="text-[10px] text-emerald-700 font-medium leading-none mt-0.5">
-                  {activeRole === 'ADMIN' ? 'Org Admin' : activeRole === 'PEER_VERIFIER' ? 'Peer Verifier' : 'Custodian'}
+                  {activeRole === 'ADMIN' ? t('roleAdmin') : activeRole === 'PEER_VERIFIER' ? t('rolePeerVerifier') : t('roleCustodian')}
                 </p>
               </div>
             </div>
@@ -554,5 +567,13 @@ export default function App() {
       />
     )}
   </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <MainContent />
+    </LanguageProvider>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ActiveTab, ActiveRole } from '../types/custodia';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   Sprout, 
   LayoutDashboard, 
@@ -17,7 +18,8 @@ import {
   Settings,
   TreePine,
   MapPin,
-  Leaf
+  Leaf,
+  Globe
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -37,6 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenRegisterTree,
   riskCount,
 }) => {
+  const { language, toggleLanguage, t } = useLanguage();
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('treeguard_sidebar_collapsed') === 'true';
   });
@@ -67,18 +70,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div 
         className={`p-5 pb-4 cursor-pointer transition-colors hover:bg-white/5 flex items-center border-b border-white/5 ${isCollapsed ? 'justify-center px-0' : ''}`}
         onClick={toggleSidebar}
-        title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        title={isCollapsed ? (language === 'ta' ? "பக்கப்பட்டியை விரிவாக்கு" : "Expand Sidebar") : (language === 'ta' ? "பக்கப்பட்டியை சுருக்கு" : "Collapse Sidebar")}
       >
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 shrink-0 rounded-full bg-emerald-900/60 border border-emerald-500/30 flex items-center justify-center shadow-md overflow-hidden p-1">
-            <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-full h-full object-contain filter brightness-110" />
+          <div className="w-11 h-11 shrink-0 rounded-full bg-emerald-950 border-2 border-[#D4AF37]/50 flex items-center justify-center shadow-lg overflow-hidden p-0.5">
+            <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-full h-full object-contain filter drop-shadow-sm" />
           </div>
           <div className={`transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
             <h1 className="font-extrabold text-white text-base tracking-wide leading-tight whitespace-nowrap">
-              VANAM KURI
+              {language === 'ta' ? 'தமிழ்நாடு அரசு' : 'VANAM KURI'}
             </h1>
-            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap block mt-0.5">
-              GOVT. OF TAMIL NADU
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap block mt-0.5">
+              {language === 'ta' ? 'வனம் குறி • VANAM KURI' : 'GOVT. OF TAMIL NADU'}
             </span>
           </div>
         </div>
@@ -91,17 +94,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-1">
           {!isCollapsed && (
             <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              MAIN
+              {t('navMain')}
             </div>
           )}
 
           {[
-            { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, role: 'ADMIN' },
-            { id: 'passport', label: 'Tree Passport (3D)', icon: FileText, role: 'ALL' },
-            { id: 'custodian-view', label: 'My Trees', icon: TreePine, role: 'CUSTODIAN' },
-            { id: 'custodian-view-full', label: 'Custodian', icon: Users, role: 'CUSTODIAN' },
-            { id: 'verification-queue', label: 'Peer Verifier', icon: ShieldCheck, count: 2, role: 'PEER_VERIFIER' },
-            { id: 'map', label: 'Map View', icon: MapPin, role: 'ALL' },
+            { id: 'dashboard', label: t('navDashboard'), icon: LayoutDashboard, role: 'ADMIN' },
+            { id: 'passport', label: t('navPassport'), icon: FileText, role: 'ALL' },
+            { id: 'custodian-view', label: t('navMyTrees'), icon: TreePine, role: 'CUSTODIAN' },
+            { id: 'custodian-view-full', label: t('navCustodian'), icon: Users, role: 'CUSTODIAN' },
+            { id: 'verification-queue', label: t('navPeerVerifier'), icon: ShieldCheck, count: 2, role: 'PEER_VERIFIER' },
+            { id: 'map', label: t('navMapView'), icon: MapPin, role: 'ALL' },
           ].map((item) => {
             const Icon = item.icon;
             const targetTab = item.id === 'custodian-view-full' ? 'custodian-view' : item.id;
@@ -150,14 +153,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-1">
           {!isCollapsed && (
             <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              TOOLS
+              {t('navTools')}
             </div>
           )}
 
           {[
-            { id: 'impact-report', label: 'Reports', icon: FileSpreadsheet },
-            { id: 'autopsy', label: 'Analytics', icon: BarChart3 },
-            { id: 'notifications', label: 'Notifications', icon: Bell, count: 3 },
+            { id: 'impact-report', label: t('navReports'), icon: FileSpreadsheet },
+            { id: 'autopsy', label: t('navAnalytics'), icon: BarChart3 },
+            { id: 'notifications', label: t('navNotifications'), icon: Bell, count: 3 },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -205,21 +208,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-1">
           {!isCollapsed && (
             <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              SUPPORT
+              {t('navSupport')}
             </div>
           )}
 
           {[
-            { id: 'help', label: 'Help Center', icon: HelpCircle },
-            { id: 'settings', label: 'Settings', icon: Settings },
+            { id: 'help', label: t('navHelpCenter'), icon: HelpCircle },
+            { id: 'settings', label: t('navSettings'), icon: Settings },
           ].map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  // Trigger helpful toast or info
-                  alert("Government of Tamil Nadu • Vanam Kuri Support Desk is available at support@vanamkuri.tn.gov.in");
+                  alert(language === 'ta' 
+                    ? "தமிழ்நாடு அரசு • வனம் குறி உதவி மையம்: support@vanamkuri.tn.gov.in"
+                    : "Government of Tamil Nadu • Vanam Kuri Support Desk: support@vanamkuri.tn.gov.in");
                 }}
                 title={isCollapsed ? item.label : undefined}
                 className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium ${
@@ -250,10 +254,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-3.5 text-white">
                 <p className="font-bold text-xs leading-snug tracking-tight text-emerald-100 mb-2">
-                  Every Tree We Protect, Protects Us.
+                  {t('sidebarQuote')}
                 </p>
                 <div className="inline-flex items-center justify-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-[10px] font-bold text-white px-2.5 py-1 rounded-full w-fit transition-colors">
-                  <span>Plant. Protect. Preserve.</span>
+                  <span>{t('sidebarSubQuote')}</span>
                   <Leaf className="w-3 h-3 text-emerald-300" />
                 </div>
               </div>
@@ -264,23 +268,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Action Button & Role Switcher */}
       <div className={`p-3.5 mt-auto border-t border-white/5 space-y-3 overflow-hidden transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-3.5'}`}>
+        {/* Language Switcher Button in Sidebar */}
+        <button
+          onClick={toggleLanguage}
+          title={isCollapsed ? (language === 'ta' ? "Switch to English" : "தமிழுக்கு மாறவும்") : undefined}
+          className={`w-full py-2 px-2.5 rounded-xl bg-emerald-800/60 hover:bg-emerald-700/80 border border-emerald-400/30 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer ${
+            isCollapsed ? 'p-2' : ''
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+          {!isCollapsed && (
+            <span className="truncate">
+              {language === 'ta' ? 'English (ஆங்கிலம்)' : 'தமிழ் (Tamil)'}
+            </span>
+          )}
+        </button>
+
         <button
           onClick={onOpenRegisterTree}
-          title={isCollapsed ? "Register Tree" : undefined}
+          title={isCollapsed ? t('registerNewTree') : undefined}
           className={`rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shadow-md transition-all ${
             isCollapsed ? 'w-10 h-10 mx-auto p-0' : 'w-full px-3 py-2.5 gap-2'
           }`}
         >
           <Plus className="w-4 h-4 shrink-0" />
           <span className={`whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
-            Register New Tree
+            {t('registerNewTree')}
           </span>
         </button>
 
         {/* Role Simulator */}
         <div className={`bg-white/5 rounded-xl font-medium flex flex-col gap-1 border border-white/5 ${isCollapsed ? 'p-1' : 'p-1.5'}`}>
           <span className={`text-[9px] text-emerald-300/60 uppercase text-center font-bold tracking-wider ${isCollapsed ? 'opacity-0 h-0 py-0 hidden' : 'opacity-100 h-auto py-0.5'}`}>
-            Simulate Role
+            {language === 'ta' ? 'பங்கு பாவனை' : 'Simulate Role'}
           </span>
           
           <div className="flex flex-col gap-1">
