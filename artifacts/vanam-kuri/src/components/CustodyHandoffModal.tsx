@@ -4,6 +4,7 @@ import { custodyService } from '../services/custodyService';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { eligibleCustodians } from '../data/mockData';
 import confetti from 'canvas-confetti';
+
 import { 
   Users, 
   ArrowRight, 
@@ -58,11 +59,12 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
       setStep('success');
 
       // Trigger Confetti Celebration
+      
       confetti({
-        particleCount: 80,
-        spread: 70,
+        particleCount: 100,
+        spread: 80,
         origin: { y: 0.6 },
-        colors: ['#10B981', '#059669', '#34D399', '#F59E0B', '#10B981'],
+        colors: ['#10B981', '#F59E0B', '#34D399', '#38BDF8', '#FBBF24'],
       });
 
       onHandoffSuccess(tree.id, selectedCandidate.name, selectedCandidate.unit);
@@ -75,18 +77,18 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
         {/* Header */}
         <div className="p-5 border-b border-slate-100 bg-gradient-to-r from-emerald-50/80 via-white to-emerald-50/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-emerald-700 text-white flex items-center justify-center shadow-sm">
               <HeartHandshake className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
-                  Custody Chain Continuity
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-full font-bold border border-amber-300">
+                  ✅ CUSTODY HANDOFF CEREMONY
                 </span>
                 <span className="text-xs font-mono text-slate-400">Tree ID: {tree.id}</span>
               </div>
-              <h2 className="text-lg font-bold text-slate-900 mt-0.5">
-                Custody Handoff Ceremony
+              <h2 className="text-lg font-black text-slate-900 mt-0.5">
+                Custody Handoff & Guardian Oath
               </h2>
             </div>
           </div>
@@ -270,16 +272,21 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
                 </div>
               </div>
 
-              <label className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-amber-50/80 border-2 border-amber-300/80 cursor-pointer shadow-xs">
                 <input
                   type="checkbox"
                   checked={pledgeAccepted}
                   onChange={(e) => setPledgeAccepted(e.target.checked)}
-                  className="mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                  className="mt-1 rounded border-amber-400 text-amber-600 focus:ring-amber-500 w-4 h-4"
                 />
-                <span className="text-xs text-slate-700">
-                  I accept full custodianship and pledge accountability for the survival of this living tree.
-                </span>
+                <div className="text-xs text-slate-800 space-y-1">
+                  <p className="font-extrabold text-amber-900 flex items-center gap-1.5">
+                    <span>🌟 THE GUARDIAN'S OATH</span>
+                  </p>
+                  <p className="italic text-slate-700 leading-relaxed">
+                    "I accept full custodianship and pledge accountability to nurture this living tree, protect its canopy, and ensure it is <strong>never abandoned or left orphaned</strong>. Every tree deserves a guardian."
+                  </p>
+                </div>
               </label>
             </div>
           )}
@@ -287,15 +294,15 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
           {/* STEP 4: SUCCESS CEREMONY */}
           {step === 'success' && (
             <div className="text-center py-6 space-y-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-500 text-emerald-600 flex items-center justify-center mx-auto shadow-lg animate-bounce">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-emerald-600 border-2 border-amber-300 text-white flex items-center justify-center mx-auto shadow-xl animate-bounce">
                 <Sparkles className="w-8 h-8" />
               </div>
 
               <div>
-                <span className="text-[11px] font-mono text-emerald-700 uppercase tracking-widest font-bold">
-                  Custody Transfer Confirmed
+                <span className="text-[11px] font-mono text-amber-800 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-widest font-black border border-amber-300">
+                  ✅ CUSTODY HANDOFF SEALED
                 </span>
-                <h3 className="text-xl font-extrabold text-slate-900 mt-1">
+                <h3 className="text-xl font-black text-slate-900 mt-2">
                   Responsibility Transferred Successfully
                 </h3>
                 <p className="text-xs text-slate-600 max-w-md mx-auto mt-1">
@@ -304,16 +311,23 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
               </div>
 
               {/* Digital Handoff Certificate Badge */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-50 via-white to-emerald-50 border border-emerald-200 max-w-md mx-auto text-left shadow-xs">
-                <div className="flex items-center justify-between border-b border-emerald-100 pb-2">
-                  <span className="text-[10px] font-mono font-bold text-emerald-800">CUSTODIA CERTIFIED TRANSFER</span>
-                  <span className="text-[10px] font-mono text-slate-400">TN-2025-00125-HO</span>
+              <div className="p-5 rounded-3xl bg-gradient-to-br from-amber-50/90 via-white to-emerald-50/90 border-2 border-amber-400/60 max-w-md mx-auto text-left shadow-md relative overflow-hidden">
+                {/* Groot Sacred Leaf Seal */}
+                <div className="absolute top-3 right-3 w-12 h-12 rounded-full border-2 border-amber-400 bg-amber-100/60 flex flex-col items-center justify-center text-[8px] font-black text-amber-900 shadow-inner rotate-12">
+                  <span>🍃</span>
+                  <span className="text-[7px] tracking-tighter">VERIFIED</span>
                 </div>
-                <div className="pt-2 text-xs space-y-1 text-slate-700">
-                  <p><span className="text-slate-400">Previous Custodian:</span> <span className="font-semibold">{tree.currentCustodian}</span> (Honorary Alumnus Custodian)</p>
-                  <p><span className="text-slate-400">New Active Custodian:</span> <span className="font-bold text-emerald-800">{selectedCandidate.name}</span></p>
+
+                <div className="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                  <span className="text-[10px] font-mono font-black text-amber-900">✅ CUSTODY TRANSFER CERTIFICATE</span>
+                  <span className="text-[10px] font-mono text-slate-400">VK-2025-HO</span>
+                </div>
+                <div className="pt-2 text-xs space-y-1.5 text-slate-700">
+                  <p><span className="text-slate-400">Previous Custodian:</span> <span className="font-semibold">{tree.currentCustodian}</span> (Honorary Guardian Alumnus)</p>
+                  <p><span className="text-slate-400">New Active Custodian:</span> <span className="font-extrabold text-emerald-800">{selectedCandidate.name}</span></p>
+                  <p><span className="text-slate-400">Motto:</span> <span className="font-bold text-amber-800">"Every tree deserves a guardian. No tree left behind."</span></p>
                   <p><span className="text-slate-400">Timestamp:</span> {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                  <p className="text-[10px] font-mono text-slate-400 pt-1">Ledger Hash: 0x8a92f...c31b9d</p>
+                  <p className="text-[10px] font-mono text-slate-400 pt-1">Ledger Hash: 0x8a92f...vk25...c31b9d</p>
                 </div>
               </div>
 

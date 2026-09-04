@@ -6,7 +6,7 @@ export const translations = {
   en: {
     // Branding & Header
     govTitle: 'GOVT. OF TAMIL NADU',
-    brandName: 'VANAM KURI',
+    brandName: 'PASUMAI KAVAL',
     tagline: 'You Care. They Grow.',
     searchPlaceholder: 'Search trees, ID, locations...',
     notifications: 'Notifications',
@@ -140,7 +140,7 @@ export const translations = {
   ta: {
     // Branding & Header
     govTitle: 'தமிழ்நாடு அரசு',
-    brandName: 'வனம் குறி',
+    brandName: 'பசுமை காவல்',
     tagline: 'நீங்கள் காக்கிறீர்கள் • அவை வளர்கின்றன',
     searchPlaceholder: 'மரங்கள், ஐடி, இடங்களைத் தேடுங்கள்...',
     notifications: 'அறிவிப்புகள்',
@@ -284,12 +284,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    return (localStorage.getItem('vanam_kuri_lang') as Language) || 'ta';
+    return (localStorage.getItem('pasumai_kaval_lang') || localStorage.getItem('vanam_kuri_lang') as Language) || 'ta';
   });
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('vanam_kuri_lang', lang);
+    localStorage.setItem('pasumai_kaval_lang', lang);
   };
 
   const toggleLanguage = () => {

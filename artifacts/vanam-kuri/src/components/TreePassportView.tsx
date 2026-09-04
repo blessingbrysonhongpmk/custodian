@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tree } from '../types/custodia';
+import { Tree3DViewer } from './Tree3DViewer';
 import { 
   ShieldCheck, 
   MapPin, 
@@ -23,7 +24,7 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
   onOpenHandoff,
   onOpenVerification,
 }) => {
-  const [activeTab, setActiveTab] = useState<'ai_verification' | 'custody' | 'timeline'>('ai_verification');
+  const [activeTab, setActiveTab] = useState<'groot_3d' | 'ai_verification' | 'custody' | 'timeline'>('groot_3d');
 
   // Get latest checkpoint for AI verification comparison
   const latestCheckpoint = tree.checkpoints?.length > 0 
@@ -220,23 +221,36 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
         <div className="lg:col-span-8 xl:col-span-8 flex flex-col gap-6">
           
           {/* Navigation Tabs */}
-          <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto no-scrollbar">
+          <div className="bg-white p-1.5 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto no-scrollbar gap-1">
+            <button
+              onClick={() => setActiveTab('groot_3d')}
+              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                activeTab === 'groot_3d' 
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-sm font-black' 
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <span className="flex items-center justify-center gap-1.5">
+                <span>🪴</span>
+                <span>3D Groot Twin</span>
+              </span>
+            </button>
             <button
               onClick={() => setActiveTab('ai_verification')}
-              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'ai_verification' 
-                  ? 'bg-emerald-50 text-emerald-800 shadow-sm' 
+                  ? 'bg-emerald-600 text-white shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
               <span className="flex items-center justify-center gap-2">
-                <Sparkles className={`w-4 h-4 ${activeTab === 'ai_verification' ? 'text-emerald-500' : ''}`} />
+                <Sparkles className={`w-4 h-4 ${activeTab === 'ai_verification' ? 'text-amber-300' : ''}`} />
                 AI Verification
               </span>
             </button>
             <button
               onClick={() => setActiveTab('timeline')}
-              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'timeline' 
                   ? 'bg-slate-900 text-white shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
@@ -246,7 +260,7 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
             </button>
             <button
               onClick={() => setActiveTab('custody')}
-              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
+              className={`flex-1 min-w-max px-4 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                 activeTab === 'custody' 
                   ? 'bg-slate-900 text-white shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
@@ -255,6 +269,30 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
               Custody History
             </button>
           </div>
+
+          {/* TAB CONTENT: 3D GROOT DIGITAL TWIN */}
+          {activeTab === 'groot_3d' && (
+            <div className="flex flex-col gap-6 animate-fade-in">
+              <div className="px-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-800 text-[10px] font-black uppercase tracking-widest border border-amber-400/40">
+                    ⭐ Flora Colossus Digital Twin
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">Interactive Three.js 3D Model</span>
+                </div>
+                <h2 className="text-xl font-black text-slate-900 mt-1">Living 3D Replica & Growth Stages</h2>
+                <p className="text-sm text-slate-500 mt-0.5">Explore growth stages from Baby Groot in pot to full Guardian canopy.</p>
+              </div>
+
+              <Tree3DViewer
+                speciesName={tree.speciesName}
+                tamilName={tree.speciesName.includes('Neem') ? 'வேம்பு' : 'மரம்'}
+                status={tree.status}
+                growthStage={3}
+                heightCm={118}
+              />
+            </div>
+          )}
 
           {/* TAB CONTENT: AI VERIFICATION */}
           {activeTab === 'ai_verification' && (

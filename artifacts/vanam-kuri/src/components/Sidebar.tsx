@@ -22,6 +22,7 @@ import {
   Globe
 } from 'lucide-react';
 
+
 interface SidebarProps {
   activeTab: ActiveTab;
   onSelectTab: (tab: ActiveTab) => void;
@@ -73,15 +74,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         title={isCollapsed ? (language === 'ta' ? "பக்கப்பட்டியை விரிவாக்கு" : "Expand Sidebar") : (language === 'ta' ? "பக்கப்பட்டியை சுருக்கு" : "Collapse Sidebar")}
       >
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-11 h-11 shrink-0 rounded-full bg-emerald-950 border-2 border-[#D4AF37]/50 flex items-center justify-center shadow-lg overflow-hidden p-0.5">
+          <div className="w-11 h-11 shrink-0 rounded-full bg-emerald-950 border-2 border-emerald-400/60 flex items-center justify-center shadow-lg overflow-hidden p-0.5 relative group">
             <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-full h-full object-contain filter drop-shadow-sm" />
           </div>
           <div className={`transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
-            <h1 className="font-extrabold text-white text-base tracking-wide leading-tight whitespace-nowrap">
-              {language === 'ta' ? 'தமிழ்நாடு அரசு' : 'VANAM KURI'}
-            </h1>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest whitespace-nowrap block mt-0.5">
-              {language === 'ta' ? 'வனம் குறி • VANAM KURI' : 'GOVT. OF TAMIL NADU'}
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-black text-white text-base tracking-wide leading-tight whitespace-nowrap">
+                {language === 'ta' ? 'பசுமை காவல்' : 'PASUMAI KAVAL'}
+              </h1>
+            </div>
+            <span className="text-[9px] font-extrabold text-emerald-300/80 uppercase tracking-widest whitespace-nowrap block mt-0.5">
+              {language === 'ta' ? 'மரங்களின் காவலன்' : 'TREE CUSTODY PLATFORM'}
             </span>
           </div>
         </div>
@@ -222,8 +225,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 key={item.id}
                 onClick={() => {
                   alert(language === 'ta' 
-                    ? "தமிழ்நாடு அரசு • வனம் குறி உதவி மையம்: support@vanamkuri.tn.gov.in"
-                    : "Government of Tamil Nadu • Vanam Kuri Support Desk: support@vanamkuri.tn.gov.in");
+                    ? "தமிழ்நாடு அரசு • பசுமை காவல் உதவி மையம்: support@pasumaikaval.tn.gov.in"
+                    : "Government of Tamil Nadu • Pasumai Kaval Support Desk: support@pasumaikaval.tn.gov.in");
                 }}
                 title={isCollapsed ? item.label : undefined}
                 className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium ${
@@ -296,6 +299,42 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {t('registerNewTree')}
           </span>
         </button>
+
+        {/* Platform Status Card */}
+        <div 
+          className={`rounded-2xl bg-gradient-to-br from-emerald-900/60 via-emerald-950/80 to-emerald-900/60 border border-emerald-400/20 p-2.5 transition-all hover:border-emerald-400/40 shadow-md group ${
+            isCollapsed ? 'p-1.5 text-center' : ''
+          }`}
+          title="Platform Status"
+        >
+          {isCollapsed ? (
+            <div className="w-8 h-8 mx-auto rounded-full bg-emerald-400/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
+              🌿
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base group-hover:rotate-12 transition-transform">🌿</span>
+                  <div>
+                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-wider leading-none">
+                      CANOPY HEALTH
+                    </p>
+                    <p className="text-[9px] text-emerald-400/80 font-semibold leading-tight mt-0.5">
+                      98% · Active
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold">
+                  Healthy
+                </span>
+              </div>
+              <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 h-full w-[98%]" />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Role Simulator */}
         <div className={`bg-white/5 rounded-xl font-medium flex flex-col gap-1 border border-white/5 ${isCollapsed ? 'p-1' : 'p-1.5'}`}>

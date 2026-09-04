@@ -64,7 +64,7 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
               <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-10 h-10" />
               <div>
                 <span className="text-sm font-bold text-emerald-800 uppercase tracking-widest block">
-                  Vanam Kuri • வனம் குறி
+                  Pasumai Kaval • பசுமை காவல்
                 </span>
                 <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
                   Government of Tamil Nadu • Verified Impact
@@ -235,7 +235,7 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
             Core Philosophy & Mission Standard
           </div>
           <blockquote className="text-xl sm:text-2xl font-serif text-white leading-relaxed relative z-10 max-w-3xl">
-            “Vanam Kuri doesn't measure how many trees we planted. It measures whether we took responsibility for keeping them alive.”
+            “Pasumai Kaval doesn't measure how many trees we planted. It measures whether we took responsibility for keeping them alive.”
           </blockquote>
           <p className="text-xs text-[#6EE7B7]/70 font-medium tracking-wide uppercase mt-4 relative z-10">
             Certified by Government of Tamil Nadu • Independent Verification Framework.
@@ -264,7 +264,7 @@ export const ImpactReportView: React.FC<ImpactReportViewProps> = ({
                 TN Gov Verified ✓
               </span>
             </div>
-            <p className="text-xs font-mono text-slate-400">Mission ID #7729 • Vanam Kuri</p>
+            <p className="text-xs font-mono text-slate-400">Mission ID #7729 • Pasumai Kaval</p>
           </div>
         </div>
       </div>

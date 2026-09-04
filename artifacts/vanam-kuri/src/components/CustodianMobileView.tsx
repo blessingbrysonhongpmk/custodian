@@ -37,6 +37,7 @@ import {
   Bell
 } from 'lucide-react';
 
+
 interface CustodianMobileViewProps {
   trees: Tree[];
   onOpenTree: (treeId: string) => void;
@@ -811,7 +812,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
         currentCustodian: "Arun K.",
         currentCustodianUnit: "Eco Club",
         currentCustodianEmail: "arun.k@ecoclub.edu.in",
-        organization: "Government of Tamil Nadu • Vanam Kuri",
+        organization: "Government of Tamil Nadu • Pasumai Kaval",
         checkpoints: [],
         custodyHistory: [],
         maintenanceLogs: [],
@@ -851,6 +852,14 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
 
             <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 w-full">
               <div className="space-y-1.5 max-w-lg text-white">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest border border-emerald-400/40 flex items-center gap-1">
+                    🌿 TREE CUSTODY GUARDIAN
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-200 bg-black/40 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
+                    🌱 Canopy Health: 98%
+                  </span>
+                </div>
                 <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2 drop-shadow-sm">
                   <span>{t('heroTitle')}</span>
                   <Leaf className="w-7 h-7 text-emerald-400 inline-block fill-emerald-400" />
@@ -1831,7 +1840,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
 
             <div className="pt-1 text-center">
               <button
-                onClick={() => setIsImpactMethodologyOpen(true)}
+                onClick={() => setIsImpactModalOpen(true)}
                 className="text-xs font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <span>{t('viewImpactDetails')}</span>
@@ -2012,7 +2021,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
                 Custody & Human Responsibility Chain
               </h4>
               <p className="text-xs text-emerald-900/80 leading-relaxed">
-                Vanam Kuri tracks tree survival through verified continuity of care:
+                Pasumai Kaval tracks tree survival through verified continuity of care:
               </p>
               <div className="space-y-1.5 pt-1 text-xs text-slate-700">
                 {inspectTree.custodyChain.map((step, idx) => (

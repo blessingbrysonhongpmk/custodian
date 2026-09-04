@@ -35,6 +35,7 @@ import {
   Pie
 } from 'recharts';
 
+
 interface DashboardViewProps {
   reliability: OrganizationReliability;
   riskItems: RiskItem[];
@@ -56,37 +57,72 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto">
-      {/* Environmental Command Center Nature Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden shadow-sm border border-emerald-500/20 bg-emerald-950 min-h-[170px] flex items-center">
+      {/* Dashboard Command Hero Banner */}
+      <div className="relative rounded-3xl overflow-hidden shadow-xl border border-emerald-600/20 bg-[#071810] min-h-[185px] flex items-center">
         <img 
           src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=1600" 
           alt="Lush green forest canopy" 
-          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.7] contrast-[1.1]"
+          className="absolute inset-0 w-full h-full object-cover filter brightness-[0.55] contrast-[1.15]"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/70 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071810]/98 via-[#0A261A]/85 to-transparent" />
 
-        <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-          <div className="space-y-1.5 text-white">
+        {/* Ambient decoration */}
+        <div className="absolute top-2 right-12 w-24 h-24 rounded-full bg-emerald-400/10 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-2 right-32 w-28 h-28 rounded-full bg-teal-400/10 blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 w-full">
+          <div className="space-y-2 text-white">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-extrabold uppercase tracking-widest border border-emerald-400/30">
-                State Operational Command
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest border border-emerald-400/40 flex items-center gap-1">
+                🌿 PASUMAI KAVAL COMMAND CENTER
               </span>
-              <span className="text-xs text-emerald-200/80 font-medium">Government of Tamil Nadu • வனம் குறி</span>
+              <span className="text-xs text-emerald-200/80 font-medium">Tamil Nadu • பசுமை காவல்</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white drop-shadow-sm">
-              TRACK RESPONSIBILITY. PROTECT EVERY TREE.
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+              Tree Custody Dashboard
             </h1>
-            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl font-medium">
-              {reliability.projectName} · <strong className="text-white font-bold">{reliability.totalPlanted} trees</strong> under multi-party custody tracking.
+            <p className="text-xs sm:text-sm text-emerald-100/90 max-w-xl font-medium leading-relaxed">
+              Every tree has a caretaker. Every caretaker has a successor. <strong className="text-white">{reliability.totalPlanted} trees</strong> protected under active custody.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
-            <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-right">
-              <span className="text-[10px] text-emerald-300 uppercase font-bold block">Verified Survival</span>
+            <div className="bg-emerald-950/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-emerald-400/30 text-right shadow-lg">
+              <span className="text-[10px] text-emerald-300 uppercase font-black block">Canopy Survival</span>
               <span className="text-2xl font-black text-white">{reliability.verifiedSurvivalRate}%</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Caretaker Achievement Stats */}
+      <div className="bg-white rounded-3xl border border-emerald-200/60 p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-emerald-600">🏆</span>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
+              Caretaker Achievements
+            </h3>
+          </div>
+          <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            Active Caretakers: {reliability.verifiedAlive}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { icon: '🌱', title: 'First Planting', desc: 'Planted & Adopted 1st Tree', color: 'from-emerald-50 to-green-50', border: 'border-emerald-200/60' },
+            { icon: '🛡️', title: 'Verified Guardian', desc: '5 Checkpoints Verified', color: 'from-teal-50 to-emerald-50', border: 'border-teal-200/60' },
+            { icon: '🤝', title: 'Seamless Handoff', desc: 'Zero-Gap Custody Transfer', color: 'from-sky-50 to-teal-50', border: 'border-sky-200/60' },
+            { icon: '🌟', title: 'Top Guardian', desc: '95%+ Canopy Survival', color: 'from-amber-50 to-yellow-50', border: 'border-amber-200/60' },
+          ].map((badge) => (
+            <div key={badge.title} className={`bg-gradient-to-br ${badge.color} rounded-xl p-3 border ${badge.border} hover:shadow-md transition-shadow`}>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">{badge.icon}</span>
+                <span className="text-xs font-bold text-slate-800">{badge.title}</span>
+              </div>
+              <span className="text-[10px] text-slate-500 font-medium">{badge.desc}</span>
+            </div>
+          ))}
         </div>
       </div>
 

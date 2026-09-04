@@ -38,6 +38,7 @@ import { CustodyHandoffModal } from './components/CustodyHandoffModal';
 import { PeerVerificationModal } from './components/PeerVerificationModal';
 import { FailureAutopsyModal } from './components/FailureAutopsyModal';
 import { RegisterTreeModal } from './components/RegisterTreeModal';
+
 import { Search, Bell, Menu, User, ShieldCheck, Globe } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
@@ -356,6 +357,8 @@ function MainContent() {
               <span>{language === 'ta' ? 'English' : 'தமிழ்'}</span>
             </button>
 
+
+
             {/* Notification Bell */}
             <button 
               onClick={() => setActiveTab('risk-center')}
@@ -513,7 +516,7 @@ function MainContent() {
           <div className="flex items-center justify-center gap-3 mb-2">
             <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-8 h-8 opacity-60" />
             <div>
-              <p className="font-bold text-emerald-800 text-sm tracking-wide">VANAM KURI • வனம் குறி</p>
+              <p className="font-bold text-emerald-800 text-sm tracking-wide">PASUMAI KAVAL • பசுமை காவல்</p>
               <p className="text-[10px] text-slate-500 font-medium">Government of Tamil Nadu • தமிழ்நாடு அரசு</p>
             </div>
           </div>
@@ -566,6 +569,8 @@ function MainContent() {
         existingCount={trees.length}
       />
     )}
+
+
   </div>
   );
 }
