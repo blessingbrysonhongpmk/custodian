@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tree } from '../types/custodia';
 import { treeService } from '../services/treeService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { eligibleCustodians } from '../data/mockData';
 import { 
   Sprout, 
@@ -71,7 +71,7 @@ export const RegisterTreeModal: React.FC<RegisterTreeModalProps> = ({
         health_score: 95
       };
 
-      if (isSupabaseConfigured()) {
+      if (isFirebaseConfigured()) {
         treeService.createTree(treeDataDb).catch(console.error);
       }
 

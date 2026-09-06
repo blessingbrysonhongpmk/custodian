@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { RiskItem, Tree } from '../types/custodia';
+import { useTranslation } from 'react-i18next';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { 
   ShieldAlert, 
@@ -32,6 +33,7 @@ export const RiskCenterView: React.FC<RiskCenterViewProps> = ({
   onOpenVerification,
   onOpenAutopsy,
 }) => {
+  const { t } = useTranslation();
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -60,7 +62,7 @@ export const RiskCenterView: React.FC<RiskCenterViewProps> = ({
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-serif text-slate-900 tracking-tight">Risk Center</h1>
+        <h1 className="text-3xl font-serif text-slate-900 tracking-tight">{t('navigation.riskCenter')}</h1>
         <p className="text-sm text-slate-500 mt-1">Intervene before a tree loses its caretaker.</p>
       </div>
 

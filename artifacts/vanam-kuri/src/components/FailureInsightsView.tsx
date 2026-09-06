@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { failureCausesStats } from '../data/mockData';
 import { Tree } from '../types/custodia';
 import { 
@@ -23,14 +24,15 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
   onOpenTree,
   onOpenAutopsyModal,
 }) => {
+  const { t } = useTranslation();
   const failedTrees = trees.filter(t => t.status === 'failed' || t.failureAutopsy);
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-serif text-slate-900 tracking-tight">Failure Insights</h1>
-        <p className="text-sm text-slate-500 mt-1">Turn tree mortality data into systemic planning intelligence.</p>
+        <h1 className="text-3xl font-serif text-slate-900 tracking-tight">{t('failureInsights.title')}</h1>
+        <p className="text-sm text-slate-500 mt-1">{t('failureInsights.subtitle')}</p>
       </div>
 
       {/* Top Urgent Summary Section */}
@@ -40,17 +42,17 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
         <div className="lg:col-span-1 bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex flex-col justify-center relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-slate-50 to-transparent pointer-events-none" />
           <div className="relative z-10 text-center lg:text-left">
-            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">Total Autopsies</span>
+            <span className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2 block">{t('failureInsights.totalAutopsies')}</span>
             <h2 className="text-5xl font-extrabold text-slate-900 tracking-tight mb-2">
-              80 <span className="text-xl text-slate-500 font-medium tracking-normal">Trees</span>
+              80 <span className="text-xl text-slate-500 font-medium tracking-normal">{t('failureInsights.trees')}</span>
             </h2>
             <p className="text-slate-500 text-sm">
-              Analyzed failures from the pilot campus drive.
+              {t('failureInsights.analyzedFailures')}
             </p>
           </div>
         </div>
 
-        {/* Systemic Takeaways */}
+        {/* {t('failureInsights.systemicTakeaways')} */}
         <div className="lg:col-span-2 bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-800 flex flex-col justify-center text-white relative overflow-hidden">
           <div className="absolute -bottom-10 -right-10 opacity-10">
             <Lightbulb className="w-48 h-48" />
@@ -58,7 +60,7 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
           <div className="relative z-10 flex flex-col gap-4">
             <div className="flex items-center gap-2 font-bold text-sm text-emerald-400">
               <Lightbulb className="w-5 h-5" />
-              Key Systemic Findings for Next Drive
+              {t('failureInsights.keyFindings')}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               <div className="space-y-1 bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
@@ -88,8 +90,8 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h3 className="text-lg font-bold text-slate-900">Distribution of Mortality Factors</h3>
-            <span className="text-sm text-slate-500">Root-cause analysis by percentage</span>
+            <h3 className="text-lg font-bold text-slate-900">{t('failureInsights.distribution')}</h3>
+            <span className="text-sm text-slate-500">{t('failureInsights.rootCause')}</span>
           </div>
         </div>
 
@@ -130,9 +132,9 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
           <div>
             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-rose-500" />
-              Detailed Autopsy Records
+              {t('failureInsights.detailedRecords')}
             </h3>
-            <p className="text-sm text-slate-500 mt-1">Investigated mortality cases and specific learnings.</p>
+            <p className="text-sm text-slate-500 mt-1">{t('failureInsights.investigatedCases')}</p>
           </div>
         </div>
 
@@ -180,13 +182,13 @@ export const FailureInsightsView: React.FC<FailureInsightsViewProps> = ({
 
                 <div className="flex items-center justify-between mt-auto">
                   <span className="text-slate-400 font-mono text-[10px] uppercase tracking-wider">
-                    Audited: {autopsy.recordedDate}
+                    {t('failureInsights.audited')}: {autopsy.recordedDate}
                   </span>
                   <button
                     onClick={() => onOpenAutopsyModal(tree)}
                     className="text-xs font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 transition-colors"
                   >
-                    View Full Record
+                    {t('failureInsights.viewFullRecord')}
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>

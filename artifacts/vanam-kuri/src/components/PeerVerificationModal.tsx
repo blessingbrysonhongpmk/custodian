@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tree, CheckpointStatus, EvidenceConsistency } from '../types/custodia';
 import { checkpointService } from '../services/checkpointService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { 
   Camera, 
   CheckCircle2, 
@@ -83,7 +83,7 @@ export const PeerVerificationModal: React.FC<PeerVerificationModalProps> = ({
     setAiAnalysisComplete(false);
     
     try {
-      if (isSupabaseConfigured()) {
+      if (isFirebaseConfigured()) {
         await checkpointService.submitCheckpoint(tree.id, {
           photoUrl: capturedPhoto,
           health_status: selectedVerdict,
@@ -364,7 +364,7 @@ export const PeerVerificationModal: React.FC<PeerVerificationModalProps> = ({
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-slate-900 uppercase tracking-wide">Verification Complete</h3>
-                    <p className="text-xs text-slate-500 mt-1">Gemini Vision Analysis • {isSupabaseConfigured() ? 'Live AI Analysis' : 'Demo Analysis'}</p>
+                    <p className="text-xs text-slate-500 mt-1">Gemini Vision Analysis • {isFirebaseConfigured() ? 'Live AI Analysis' : 'Demo Analysis'}</p>
                   </div>
 
                   <div className="text-5xl font-light text-emerald-600 tracking-tighter">

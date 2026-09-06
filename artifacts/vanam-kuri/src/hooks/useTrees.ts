@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { treeService } from '../services/treeService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { Tree } from '../types/custodia';
 import { sampleTrees } from '../data/mockData';
 
@@ -10,7 +10,7 @@ export function useTrees() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTrees = useCallback(async () => {
-    if (!isSupabaseConfigured()) {
+    if (!isFirebaseConfigured()) {
       // Fallback to local mock data
       setTrees(sampleTrees);
       setLoading(false);

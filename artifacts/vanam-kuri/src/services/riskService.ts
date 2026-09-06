@@ -1,17 +1,10 @@
-import { supabase } from '../lib/supabase';
-
+import { firebaseService } from './firebaseService';
 export const riskService = {
-  async getRisks(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from('risk_events')
-      .select('*, trees(tree_code, species, current_status), profiles(name)')
-      .eq('status', 'active');
-      
-    if (error) {
-      console.error('Error fetching risks:', error);
-      throw error;
+  getRisks: async () => {
+    try {
+      return await firebaseService.getRiskItems();
+    } catch {
+      return [];
     }
-    
-    return data;
   }
 };

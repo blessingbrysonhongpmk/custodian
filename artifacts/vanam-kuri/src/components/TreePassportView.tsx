@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Tree } from '../types/custodia';
+import { useTranslation } from 'react-i18next';
 import { Tree3DViewer } from './Tree3DViewer';
 import { 
   ShieldCheck, 
@@ -23,7 +24,9 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
   tree,
   onOpenHandoff,
   onOpenVerification,
+  onOpenAutopsy
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'groot_3d' | 'ai_verification' | 'custody' | 'timeline'>('groot_3d');
 
   // Get latest checkpoint for AI verification comparison
@@ -108,7 +111,7 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
             <div className="flex items-center gap-4 mb-6">
               <div className="flex flex-col">
                 <span className="text-3xl font-light text-slate-900">{tree.healthScore}</span>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Health Score</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('passport.healthScore')}</span>
               </div>
               <div className="w-px h-10 bg-slate-100" />
               <div className="flex flex-col">
@@ -133,7 +136,7 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
               <div className="flex items-start gap-3">
                 <Calendar className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-700">Planted</p>
+                  <p className="text-sm font-semibold text-slate-700">{t('passport.badgePlanted')}</p>
                   <p className="text-xs text-slate-500 mt-0.5">
                     {new Date(tree.plantedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                   </p>
@@ -187,7 +190,7 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
             <div className="relative pl-3 space-y-4 before:content-[''] before:absolute before:left-4 before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100">
               <div className="relative flex items-center gap-4 z-10">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white" />
-                <span className="text-sm font-medium text-slate-500">Planted</span>
+                <span className="text-sm font-medium text-slate-500">{t('passport.badgePlanted')}</span>
               </div>
               <div className="relative flex items-center gap-4 z-10">
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-white" />

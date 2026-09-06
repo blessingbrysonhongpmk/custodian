@@ -840,56 +840,30 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
         {/* ======================================================== */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* 1. CUSTODIAN HERO BANNER (from reference screenshot) */}
-          <div className="relative rounded-3xl overflow-hidden shadow-sm border border-emerald-500/20 bg-emerald-950 min-h-[220px] sm:min-h-[240px] flex items-center">
-            {/* Panoramic Nature Tree Image */}
-            <img 
-              src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&q=80&w=1600" 
-              alt="Lush green tree in sunlit field" 
-              className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.92] contrast-[1.05]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent sm:from-black/55 sm:via-black/25" />
+          {/* 1. CUSTODIAN GREETING */}
+          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="space-y-1.5 max-w-lg">
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+                {t('dashboard.greeting', { name: simulatedCustodian })}
+              </h2>
+              <p className="text-sm text-slate-500 max-w-md pt-1">
+                You are currently responsible for {profile.myTreesCount} trees. Your next checkpoint is due in {myTreesData[0]?.nextCheckpointRelative || 'a few days'}.
+              </p>
 
-            <div className="relative z-10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 w-full">
-              <div className="space-y-1.5 max-w-lg text-white">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-widest border border-emerald-400/40 flex items-center gap-1">
-                    🌿 TREE CUSTODY GUARDIAN
-                  </span>
-                  <span className="text-[10px] font-bold text-emerald-200 bg-black/40 px-2.5 py-0.5 rounded-full border border-emerald-400/30 flex items-center gap-1">
-                    🌱 Canopy Health: 98%
-                  </span>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-2 drop-shadow-sm">
-                  <span>{t('heroTitle')}</span>
-                  <Leaf className="w-7 h-7 text-emerald-400 inline-block fill-emerald-400" />
-                </h2>
-                <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white drop-shadow-sm">
-                  {t('heroTitleHighlight')}
-                </h3>
-                <p className="text-xs sm:text-sm text-emerald-100 font-medium max-w-md pt-1 drop-shadow-sm">
-                  {t('heroSubtitle')}
-                </p>
-
-                <div className="pt-3">
-                  <button
-                    onClick={() => setRecordMaintenanceTree(myTreesData[0])}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg transition-all transform hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    <span>{t('heroRecordUpdate')}</span>
-                  </button>
-                </div>
+              <div className="pt-3">
+                <button
+                  onClick={() => setRecordMaintenanceTree(myTreesData[0])}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition-colors cursor-pointer"
+                >
+                  <span>{t('heroRecordUpdate')}</span>
+                </button>
               </div>
+            </div>
 
-              {/* Floating Trust Score Card on Hero Right */}
-              <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 shadow-xl border border-emerald-500/20 text-center min-w-[150px] shrink-0 self-end sm:self-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto mb-1.5">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{t('trustScoreLabel')}</span>
-                <div className="text-3xl font-black text-slate-900 tracking-tight mt-0.5">{profile.trustScore}%</div>
-                <span className="text-[11px] font-extrabold text-emerald-600 block mt-0.5">{t('trustScoreBadge')}</span>
-              </div>
+            <div className="bg-slate-50 rounded-2xl p-4 sm:p-5 border border-slate-200/80 text-center min-w-[150px] shrink-0 self-end sm:self-center">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">{t('dashboard.complianceScore')}</span>
+              <div className="text-3xl font-bold text-slate-900 tracking-tight mt-0.5">{profile.trustScore}%</div>
+              <span className="text-[11px] font-semibold text-emerald-700 block mt-0.5">{t('dashboard.excellentStanding')}</span>
             </div>
           </div>
 
@@ -2179,7 +2153,7 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
             </button>
 
             <div>
-              <div className="text-xs font-bold text-red-600">Report Tree Issue</div>
+              <div className="text-xs font-bold text-red-600">{t('passport.reportIssue')}</div>
               <h3 className="text-lg font-extrabold text-slate-900 mt-0.5">
                 {reportIssueTree.id} — {reportIssueTree.speciesName}
               </h3>

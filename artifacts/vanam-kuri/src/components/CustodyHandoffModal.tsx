@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Tree, CustodyRecord } from '../types/custodia';
 import { custodyService } from '../services/custodyService';
-import { isSupabaseConfigured } from '../lib/supabase';
+import { isFirebaseConfigured } from '../lib/firebase';
 import { eligibleCustodians } from '../data/mockData';
 import confetti from 'canvas-confetti';
 
@@ -47,7 +47,7 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
     setIsTransferring(true);
     
     try {
-      if (isSupabaseConfigured()) {
+      if (isFirebaseConfigured()) {
         await custodyService.initiateHandoff(tree.id, 'dummy-previous-id', handoffReason);
       }
     } catch (error) {

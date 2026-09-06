@@ -2,24 +2,22 @@ import React, { useState } from 'react';
 import { ActiveTab, ActiveRole } from '../types/custodia';
 import { useLanguage } from '../context/LanguageContext';
 import { 
-  Sprout, 
+  TreePine,
   LayoutDashboard, 
   FileText, 
-  Map, 
+  MapPin,
   ShieldCheck, 
-  Smartphone, 
   FileSpreadsheet, 
   Plus,
   Building2,
   Users,
   BarChart3,
-  Bell,
+  AlertTriangle,
   HelpCircle,
   Settings,
-  TreePine,
-  MapPin,
-  Leaf,
-  Globe
+  Globe,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 
@@ -53,65 +51,74 @@ export const Sidebar: React.FC<SidebarProps> = ({
     });
   };
 
-  // Check if item is active
   const isItemActive = (id: string) => {
-    if (id === 'custodian-view' && (activeTab === 'custodian-view' || activeRole === 'CUSTODIAN')) {
-      return activeTab === 'custodian-view';
-    }
+    if (id === 'custodian-view' && activeTab === 'custodian-view') return true;
     return activeTab === id;
   };
 
   return (
     <aside 
-      className={`sidebar-forest text-white flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] flex-shrink-0 select-none ${
-        isCollapsed ? 'w-[76px]' : 'w-[280px]'
+      className={`sidebar-forest text-white flex flex-col h-full overflow-y-auto overflow-x-hidden transition-all duration-300 ease-out flex-shrink-0 select-none ${
+        isCollapsed ? 'w-[68px]' : 'w-[260px]'
       }`}
     >
-      {/* Brand Header with TN Gov Logo */}
+      {/* Brand Header */}
       <div 
-        className={`p-5 pb-4 cursor-pointer transition-colors hover:bg-white/5 flex items-center border-b border-white/5 ${isCollapsed ? 'justify-center px-0' : ''}`}
-        onClick={toggleSidebar}
-        title={isCollapsed ? (language === 'ta' ? "பக்கப்பட்டியை விரிவாக்கு" : "Expand Sidebar") : (language === 'ta' ? "பக்கப்பட்டியை சுருக்கு" : "Collapse Sidebar")}
+        className={`p-4 pb-3 flex items-center border-b border-white/6 ${isCollapsed ? 'justify-center px-3' : 'gap-3'}`}
       >
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-11 h-11 shrink-0 rounded-full bg-emerald-950 border-2 border-emerald-400/60 flex items-center justify-center shadow-lg overflow-hidden p-0.5 relative group">
-            <img src="/tn-gov-logo.svg" alt="Tamil Nadu Government" className="w-full h-full object-contain filter drop-shadow-sm" />
-          </div>
-          <div className={`transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isCollapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'}`}>
-            <div className="flex items-center gap-1.5">
-              <h1 className="font-black text-white text-base tracking-wide leading-tight whitespace-nowrap">
-                {language === 'ta' ? 'பசுமை காவல்' : 'PASUMAI KAVAL'}
-              </h1>
-            </div>
-            <span className="text-[9px] font-extrabold text-emerald-300/80 uppercase tracking-widest whitespace-nowrap block mt-0.5">
-              {language === 'ta' ? 'மரங்களின் காவலன்' : 'TREE CUSTODY PLATFORM'}
-            </span>
-          </div>
+        <div className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Seal_of_Tamil_Nadu.svg" alt="Seal of Tamil Nadu" className="w-full h-full object-contain drop-shadow-md" />
         </div>
+        <div className={`transition-all duration-300 ${isCollapsed ? 'opacity-0 w-0 overflow-hidden' : 'opacity-100 w-auto'}`}>
+          <h1 className="font-bold text-white text-sm tracking-tight leading-tight whitespace-nowrap">
+            {t('brand.title')}
+          </h1>
+          <span className="text-[9px] font-bold tracking-wider text-emerald-400/70 whitespace-nowrap block mt-0.5">
+            {t('brand.subtitle')}
+          </span>
+        </div>
+
+        {/* Collapse toggle */}
+        {!isCollapsed && (
+          <button 
+            onClick={toggleSidebar}
+            className="ml-auto p-1 rounded-lg hover:bg-white/5 text-emerald-400/50 hover:text-white transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        )}
+        {isCollapsed && (
+          <button 
+            onClick={toggleSidebar}
+            className="absolute -right-3 top-5 w-6 h-6 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white z-50 shadow-md"
+            style={{ display: 'none' }}
+          >
+            <ChevronRight className="w-3 h-3" />
+          </button>
+        )}
       </div>
 
-      {/* Navigation Sections */}
-      <div className={`py-4 flex-1 space-y-5 overflow-x-hidden ${isCollapsed ? 'px-3' : 'px-3.5'}`}>
+      {/* Navigation */}
+      <div className={`py-4 flex-1 space-y-5 overflow-x-hidden ${isCollapsed ? 'px-2' : 'px-3'}`}>
         
-        {/* 1. MAIN */}
-        <div className="space-y-1">
+        {/* MAIN NAV */}
+        <div className="space-y-0.5">
           {!isCollapsed && (
-            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              {t('navMain')}
+            <div className="text-[10px] font-semibold text-white/30 px-3 mb-2 uppercase tracking-wider">
+              {t('navigation.main')}
             </div>
           )}
 
           {[
-            { id: 'dashboard', label: t('navDashboard'), icon: LayoutDashboard, role: 'ADMIN' },
-            { id: 'passport', label: t('navPassport'), icon: FileText, role: 'ALL' },
-            { id: 'custodian-view', label: t('navMyTrees'), icon: TreePine, role: 'CUSTODIAN' },
-            { id: 'custodian-view-full', label: t('navCustodian'), icon: Users, role: 'CUSTODIAN' },
-            { id: 'verification-queue', label: t('navPeerVerifier'), icon: ShieldCheck, count: 2, role: 'PEER_VERIFIER' },
-            { id: 'map', label: t('navMapView'), icon: MapPin, role: 'ALL' },
+            { id: 'dashboard', label: t('navigation.dashboard'), icon: LayoutDashboard, role: 'ADMIN' as const },
+            { id: 'custodian-view', label: t('navigation.myTrees'), icon: TreePine, role: 'CUSTODIAN' as const },
+            { id: 'verification-queue', label: t('navigation.verification'), icon: ShieldCheck, count: 2, role: 'PEER_VERIFIER' as const },
+            { id: 'passport', label: t('navigation.treePassport'), icon: FileText, role: null },
+            { id: 'map', label: t('navigation.map'), icon: MapPin, role: null },
+            { id: 'risk-center', label: t('navigation.riskCenter'), icon: AlertTriangle, count: riskCount, role: null },
           ].map((item) => {
             const Icon = item.icon;
-            const targetTab = item.id === 'custodian-view-full' ? 'custodian-view' : item.id;
-            const isActive = isItemActive(targetTab);
+            const isActive = isItemActive(item.id);
 
             return (
               <button
@@ -120,20 +127,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   if (item.role === 'ADMIN' && activeRole !== 'ADMIN') onSelectRole('ADMIN');
                   if (item.role === 'CUSTODIAN' && activeRole !== 'CUSTODIAN') onSelectRole('CUSTODIAN');
                   if (item.role === 'PEER_VERIFIER' && activeRole !== 'PEER_VERIFIER') onSelectRole('PEER_VERIFIER');
-                  onSelectTab(targetTab as ActiveTab);
+                  onSelectTab(item.id as ActiveTab);
                 }}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden ${
+                className={`w-full py-2 rounded-lg transition-all duration-150 flex items-center justify-between group overflow-hidden ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
-                    : 'text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium'
+                    ? 'bg-emerald-700/80 text-white font-semibold'
+                    : 'text-white/50 hover:text-white hover:bg-white/5 font-medium'
                 } ${isCollapsed ? 'px-0 justify-center' : 'px-3'}`}
               >
-                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-300/70 group-hover:text-white transition-colors'}`} />
-                  </div>
-                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-2.5'}`}>
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-white/40 group-hover:text-white/80 transition-colors'}`} />
+                  <span className={`text-[13px] whitespace-nowrap transition-all duration-300 ${
                     isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
                   }`}>
                     {item.label}
@@ -141,8 +146,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
                 
                 {!isCollapsed && item.count !== undefined && item.count > 0 && (
-                  <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                    isActive ? 'bg-white text-emerald-700' : 'bg-amber-500 text-white'
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                    isActive ? 'bg-white/20 text-white' : 'bg-amber-500/80 text-white'
                   }`}>
                     {item.count}
                   </span>
@@ -152,18 +157,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           })}
         </div>
 
-        {/* 2. TOOLS */}
-        <div className="space-y-1">
+        {/* TOOLS */}
+        <div className="space-y-0.5">
           {!isCollapsed && (
-            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              {t('navTools')}
+            <div className="text-[10px] font-semibold text-white/30 px-3 mb-2 uppercase tracking-wider">
+              {t('navigation.tools')}
             </div>
           )}
 
           {[
-            { id: 'impact-report', label: t('navReports'), icon: FileSpreadsheet },
-            { id: 'autopsy', label: t('navAnalytics'), icon: BarChart3 },
-            { id: 'notifications', label: t('navNotifications'), icon: Bell, count: 3 },
+            { id: 'impact-report', label: t('navigation.reports'), icon: FileSpreadsheet },
+            { id: 'autopsy', label: 'Failure Insights', icon: BarChart3 },
           ].map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -171,71 +175,54 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  if (item.id === 'notifications') {
-                    // Open notifications or switch to recent alerts
-                    onSelectTab('risk-center');
-                  } else {
-                    onSelectTab(item.id as ActiveTab);
-                  }
-                }}
+                onClick={() => onSelectTab(item.id as ActiveTab)}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden ${
+                className={`w-full py-2 rounded-lg transition-all duration-150 flex items-center group overflow-hidden ${
                   isActive
-                    ? 'bg-emerald-600 text-white font-semibold shadow-sm'
-                    : 'text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium'
+                    ? 'bg-emerald-700/80 text-white font-semibold'
+                    : 'text-white/50 hover:text-white hover:bg-white/5 font-medium'
                 } ${isCollapsed ? 'px-0 justify-center' : 'px-3'}`}
               >
-                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-                  <div className="relative flex items-center justify-center shrink-0">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-300/70 group-hover:text-white transition-colors'}`} />
-                  </div>
-                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-2.5'}`}>
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-white/40 group-hover:text-white/80 transition-colors'}`} />
+                  <span className={`text-[13px] whitespace-nowrap transition-all duration-300 ${
                     isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
                   }`}>
                     {item.label}
                   </span>
                 </div>
-                
-                {!isCollapsed && item.count !== undefined && (
-                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white">
-                    {item.count}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
 
-        {/* 3. SUPPORT */}
-        <div className="space-y-1">
+        {/* SUPPORT */}
+        <div className="space-y-0.5">
           {!isCollapsed && (
-            <div className="text-[10px] font-bold text-emerald-500/70 px-3 mb-2 uppercase tracking-widest">
-              {t('navSupport')}
+            <div className="text-[10px] font-semibold text-white/30 px-3 mb-2 uppercase tracking-wider">
+              {t('navigation.support')}
             </div>
           )}
 
           {[
-            { id: 'help', label: t('navHelpCenter'), icon: HelpCircle },
-            { id: 'settings', label: t('navSettings'), icon: Settings },
+            { id: 'help', label: t('navigation.helpCenter'), icon: HelpCircle },
+            { id: 'settings', label: t('navigation.settings'), icon: Settings },
           ].map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  alert(language === 'ta' 
-                    ? "தமிழ்நாடு அரசு • பசுமை காவல் உதவி மையம்: support@pasumaikaval.tn.gov.in"
-                    : "Government of Tamil Nadu • Pasumai Kaval Support Desk: support@pasumaikaval.tn.gov.in");
+                  // Placeholder action
                 }}
                 title={isCollapsed ? item.label : undefined}
-                className={`w-full py-2.5 rounded-xl transition-all duration-200 flex items-center justify-between group overflow-hidden text-emerald-100/70 hover:text-white hover:bg-white/5 font-medium ${
+                className={`w-full py-2 rounded-lg transition-all duration-150 flex items-center group overflow-hidden text-white/50 hover:text-white hover:bg-white/5 font-medium ${
                   isCollapsed ? 'px-0 justify-center' : 'px-3'
                 }`}
               >
-                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3'}`}>
-                  <Icon className="w-4 h-4 text-emerald-300/70 group-hover:text-white transition-colors shrink-0" />
-                  <span className={`text-xs whitespace-nowrap transition-all duration-300 ${
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-2.5'}`}>
+                  <Icon className="w-4 h-4 text-white/40 group-hover:text-white/80 transition-colors shrink-0" />
+                  <span className={`text-[13px] whitespace-nowrap transition-all duration-300 ${
                     isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'
                   }`}>
                     {item.label}
@@ -245,155 +232,85 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
         </div>
-
-        {/* 4. Promotional Nature Card (from reference image!) */}
-        {!isCollapsed && (
-          <div className="pt-2">
-            <div className="relative rounded-2xl overflow-hidden shadow-lg border border-emerald-500/20 group">
-              <img 
-                src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=600&auto=format&fit=crop&q=80" 
-                alt="Forest Canopy" 
-                className="w-full h-36 object-cover filter brightness-[0.75] group-hover:scale-105 transition-transform duration-500" 
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-3.5 text-white">
-                <p className="font-bold text-xs leading-snug tracking-tight text-emerald-100 mb-2">
-                  {t('sidebarQuote')}
-                </p>
-                <div className="inline-flex items-center justify-center gap-1 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-[10px] font-bold text-white px-2.5 py-1 rounded-full w-fit transition-colors">
-                  <span>{t('sidebarSubQuote')}</span>
-                  <Leaf className="w-3 h-3 text-emerald-300" />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Action Button & Role Switcher */}
-      <div className={`p-3.5 mt-auto border-t border-white/5 space-y-3 overflow-hidden transition-all duration-300 ${isCollapsed ? 'px-2' : 'px-3.5'}`}>
-        {/* Language Switcher Button in Sidebar */}
+      {/* Bottom Actions */}
+      <div className={`p-3 mt-auto border-t border-white/6 space-y-2.5 ${isCollapsed ? 'px-2' : 'px-3'}`}>
+        {/* Language Toggle */}
         <button
           onClick={toggleLanguage}
           title={isCollapsed ? (language === 'ta' ? "Switch to English" : "தமிழுக்கு மாறவும்") : undefined}
-          className={`w-full py-2 px-2.5 rounded-xl bg-emerald-800/60 hover:bg-emerald-700/80 border border-emerald-400/30 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer ${
+          className={`w-full py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/6 text-white/70 text-xs font-medium flex items-center justify-center gap-2 transition-all ${
             isCollapsed ? 'p-2' : ''
           }`}
         >
-          <Globe className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+          <Globe className="w-3.5 h-3.5 shrink-0" />
           {!isCollapsed && (
             <span className="truncate">
-              {language === 'ta' ? 'English (ஆங்கிலம்)' : 'தமிழ் (Tamil)'}
+              {language === 'ta' ? 'English' : 'தமிழ்'}
             </span>
           )}
         </button>
 
+        {/* Register Tree */}
         <button
           onClick={onOpenRegisterTree}
-          title={isCollapsed ? t('registerNewTree') : undefined}
-          className={`rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center shadow-md transition-all ${
-            isCollapsed ? 'w-10 h-10 mx-auto p-0' : 'w-full px-3 py-2.5 gap-2'
+          title={isCollapsed ? t('common.registerNewTree') : undefined}
+          className={`rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center shadow-sm transition-all ${
+            isCollapsed ? 'w-full h-9 p-0' : 'w-full px-3 py-2 gap-2'
           }`}
         >
           <Plus className="w-4 h-4 shrink-0" />
           <span className={`whitespace-nowrap ${isCollapsed ? 'opacity-0 w-0 hidden' : 'opacity-100 w-auto'}`}>
-            {t('registerNewTree')}
+            {t('common.registerNewTree')}
           </span>
         </button>
 
-        {/* Platform Status Card */}
-        <div 
-          className={`rounded-2xl bg-gradient-to-br from-emerald-900/60 via-emerald-950/80 to-emerald-900/60 border border-emerald-400/20 p-2.5 transition-all hover:border-emerald-400/40 shadow-md group ${
-            isCollapsed ? 'p-1.5 text-center' : ''
-          }`}
-          title="Platform Status"
-        >
+        {/* Role Switcher (Demo) */}
+        <div className={`bg-white/5 rounded-lg border border-white/6 ${isCollapsed ? 'p-1' : 'p-1.5'}`}>
+          {!isCollapsed && (
+            <span className="text-[9px] text-white/30 uppercase text-center font-semibold tracking-wider block py-0.5">
+              Role View
+            </span>
+          )}
+          
           {isCollapsed ? (
-            <div className="w-8 h-8 mx-auto rounded-full bg-emerald-400/20 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
-              🌿
-            </div>
+            <button
+              onClick={toggleSidebar}
+              title={`Role: ${activeRole}`}
+              className="w-full h-8 rounded bg-white/10 text-white flex items-center justify-center"
+            >
+              {activeRole === 'ADMIN' && <Building2 className="w-3.5 h-3.5" />}
+              {activeRole === 'CUSTODIAN' && <Users className="w-3.5 h-3.5" />}
+              {activeRole === 'PEER_VERIFIER' && <ShieldCheck className="w-3.5 h-3.5" />}
+            </button>
           ) : (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-base group-hover:rotate-12 transition-transform">🌿</span>
-                  <div>
-                    <p className="text-[10px] font-black text-emerald-300 uppercase tracking-wider leading-none">
-                      CANOPY HEALTH
-                    </p>
-                    <p className="text-[9px] text-emerald-400/80 font-semibold leading-tight mt-0.5">
-                      98% · Active
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold">
-                  Healthy
-                </span>
-              </div>
-              <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
-                <div className="bg-gradient-to-r from-emerald-400 via-emerald-300 to-teal-400 h-full w-[98%]" />
-              </div>
+            <div className="grid grid-cols-3 gap-1 text-[10px]">
+              {[
+                { role: 'ADMIN' as const, icon: Building2, label: 'Admin' },
+                { role: 'CUSTODIAN' as const, icon: Users, label: 'Cust.' },
+                { role: 'PEER_VERIFIER' as const, icon: ShieldCheck, label: 'Verify' },
+              ].map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.role}
+                    onClick={() => onSelectRole(item.role)}
+                    className={`py-1.5 rounded transition-all flex items-center justify-center gap-1 font-medium ${
+                      activeRole === item.role
+                        ? 'bg-emerald-700 text-white'
+                        : 'text-white/40 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    <Icon className="w-3 h-3" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
-        </div>
-
-        {/* Role Simulator */}
-        <div className={`bg-white/5 rounded-xl font-medium flex flex-col gap-1 border border-white/5 ${isCollapsed ? 'p-1' : 'p-1.5'}`}>
-          <span className={`text-[9px] text-emerald-300/60 uppercase text-center font-bold tracking-wider ${isCollapsed ? 'opacity-0 h-0 py-0 hidden' : 'opacity-100 h-auto py-0.5'}`}>
-            {language === 'ta' ? 'பங்கு பாவனை' : 'Simulate Role'}
-          </span>
-          
-          <div className="flex flex-col gap-1">
-            {isCollapsed ? (
-              <button
-                onClick={() => setIsCollapsed(false)}
-                title={`Active Role: ${activeRole.replace('_', ' ')} (Click to switch)`}
-                className="w-9 h-9 mx-auto rounded-lg bg-white/10 text-white shadow-sm flex items-center justify-center"
-              >
-                {activeRole === 'ADMIN' && <Building2 className="w-4 h-4 text-emerald-400" />}
-                {activeRole === 'CUSTODIAN' && <Users className="w-4 h-4 text-emerald-300" />}
-                {activeRole === 'PEER_VERIFIER' && <ShieldCheck className="w-4 h-4 text-emerald-200" />}
-              </button>
-            ) : (
-              <div className="grid grid-cols-3 gap-1 text-[10px]">
-                <button
-                  onClick={() => onSelectRole('ADMIN')}
-                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
-                    activeRole === 'ADMIN'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Building2 className="w-3 h-3" />
-                  <span>Admin</span>
-                </button>
-                <button
-                  onClick={() => onSelectRole('CUSTODIAN')}
-                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
-                    activeRole === 'CUSTODIAN'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <Users className="w-3 h-3" />
-                  <span>Cust</span>
-                </button>
-                <button
-                  onClick={() => onSelectRole('PEER_VERIFIER')}
-                  className={`py-1.5 rounded-lg transition-all flex items-center justify-center gap-1 font-semibold ${
-                    activeRole === 'PEER_VERIFIER'
-                      ? 'bg-emerald-600 text-white shadow-sm'
-                      : 'text-emerald-200/70 hover:text-white hover:bg-white/5'
-                  }`}
-                >
-                  <ShieldCheck className="w-3 h-3" />
-                  <span>Peer</span>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </aside>
   );
 };
-
