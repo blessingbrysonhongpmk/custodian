@@ -51,7 +51,7 @@ export const CustodyHandoffModal: React.FC<CustodyHandoffModalProps> = ({
         await custodyService.initiateHandoff(tree.id, 'dummy-previous-id', handoffReason);
       }
     } catch (error) {
-      console.error("Failed to handoff via Supabase", error);
+      console.error("Failed to handoff via Firebase", error);
     }
 
     setTimeout(() => {

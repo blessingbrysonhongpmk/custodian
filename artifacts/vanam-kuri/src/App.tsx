@@ -24,7 +24,7 @@ import { CustodyHandoffModal } from './components/CustodyHandoffModal';
 import { PeerVerificationModal } from './components/PeerVerificationModal';
 import { FailureAutopsyModal } from './components/FailureAutopsyModal';
 import { TamilNaduSeal } from './components/TamilNaduSeal';
-
+import { GeminiChatbot } from './components/GeminiChatbot';
 import { Search, Globe, LogOut, ArrowLeft, User, Shield, CheckCircle2 } from 'lucide-react';
 
 type AppView = 'landing' | 'auth' | 'app';
@@ -401,6 +401,7 @@ export default function App() {
         <LanguageProvider>
           <ProgramHealthProvider>
             <AppRouter />
+            <GeminiChatbot />
           </ProgramHealthProvider>
         </LanguageProvider>
       </DemoDataProvider>

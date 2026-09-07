@@ -135,6 +135,7 @@ interface DataContextType {
   searchAll: (query: string) => SearchResult;
   getCustodianTrees: (custodianName: string) => Tree[];
   getVerifierQueue: (verifierName: string) => Tree[];
+  switchUser: (userId: string) => void;
   refreshData: () => Promise<void>;
 }
 
@@ -743,6 +744,10 @@ export const DemoDataProvider: React.FC<{ children: ReactNode }> = ({ children }
     };
   }, [trees]);
 
+  const switchUser = useCallback((_userId: string) => {
+    // Demo user switcher handler
+  }, []);
+
   return (
     <DemoDataContext.Provider
       value={{
@@ -765,6 +770,7 @@ export const DemoDataProvider: React.FC<{ children: ReactNode }> = ({ children }
         searchAll,
         getCustodianTrees,
         getVerifierQueue,
+        switchUser,
         refreshData,
       }}
     >
