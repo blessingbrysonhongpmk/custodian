@@ -17,6 +17,7 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { TamilNaduSeal } from './TamilNaduSeal';
+import { TREE_IMAGES } from '../data/treeImages';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -193,8 +194,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onViewDe
               <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200 bg-white">
                 <div className="relative h-[320px] bg-emerald-950">
                   <img
-                    src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80"
-                    alt="Healthy native tree sapling planted with bamboo guard"
+                    src={TREE_IMAGES.neem.mature}
+                    alt="Healthy native Neem tree planted with protective tree guard"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>

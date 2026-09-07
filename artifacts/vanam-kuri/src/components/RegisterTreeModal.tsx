@@ -3,6 +3,7 @@ import { Tree } from '../types/custodia';
 import { useDemoData } from '../context/DemoDataContext';
 import { useAuth } from '../context/AuthContext';
 import { uploadApi } from '../lib/api';
+import { getTreeImages } from '../data/treeImages';
 import { 
   Sprout, 
   MapPin, 
@@ -60,8 +61,8 @@ export const RegisterTreeModal: React.FC<RegisterTreeModalProps> = ({
   const [initialHeightCm, setInitialHeightCm] = useState<number>(55);
   const [notes, setNotes] = useState('Pledged for daily drip hydration and protected with a bamboo tree guard.');
 
-  // Photo Upload State
-  const [photoUrl, setPhotoUrl] = useState<string>('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80');
+  // Photo Upload State — default to species-specific sapling image
+  const [photoUrl, setPhotoUrl] = useState<string>(getTreeImages('Neem').sapling);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { TamilNaduSeal } from './TamilNaduSeal';
+import { TREE_IMAGES } from '../data/treeImages';
 import {
   Leaf,
   Droplets,
@@ -44,7 +45,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Ramanathapuram, Thoothukudi, Tirunelveli, Kanyakumari, Virudhunagar",
     culturalSignificance: "Official State Tree of Tamil Nadu (தமிழ்நாட்டின் மாநில மரம், 1978). Revered in Sangam literature; every part has practical utility.",
     ecologicalRole: "Deep taproots bind soil against erosion, retain coastal aquifer water, and shield against cyclones.",
-    photoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.palmyra.mature,
     linkedTreeId: "TN-PALM-005"
   },
   {
@@ -59,7 +60,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Madurai, Trichy, Salem, Chennai, Coimbatore, Karur",
     culturalSignificance: "The supreme village guardian tree of Tamil Nadu. Associated with Goddess Mariamman; natural disinfectant used for thousands of years.",
     ecologicalRole: "Purifies ambient air, natural bio-pesticide, enriches nitrogen-depleted soils through fallen foliage.",
-    photoUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.neem.mature,
     linkedTreeId: "TG-IND-001"
   },
   {
@@ -74,7 +75,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Adyar (Chennai), Thanjavur, Dindigul, Tiruvannamalai",
     culturalSignificance: "Traditional village meeting council tree (பஞ்சாயத்து மரம்). Symbol of eternal continuity and wisdom across Tamil Nadu.",
     ecologicalRole: "Keystone species sustaining birds, bats, and pollinators with massive aerial root canopies.",
-    photoUrl: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.banyan.mature,
     linkedTreeId: "TG-IND-001"
   },
   {
@@ -89,7 +90,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Chennai, Kanchipuram, Tiruvallur, Vellore, Cuddalore",
     culturalSignificance: "Classic Tamil roadside avenue tree offering dense cool shade. Seeds used traditionally for lamp oil.",
     ecologicalRole: "Nitrogen-fixing legumes that regenerate degraded soil and absorb urban vehicular particulate matter.",
-    photoUrl: "https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.pongamia.mature,
     linkedTreeId: "TN-COL-00084"
   },
   {
@@ -104,7 +105,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Across all 38 districts near temple water tanks (குளங்கள்)",
     culturalSignificance: "Planted alongside neem near temple ponds; circumambulation is traditional in Tamil wellness customs.",
     ecologicalRole: "Attracts over 40 species of native birds and butterflies; purifies air within 200m perimeter.",
-    photoUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.peepal.mature,
     linkedTreeId: "TG-IND-001"
   },
   {
@@ -119,7 +120,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Kaveri Basin, Thanjavur, Karur, Tiruchirappalli, Erode",
     culturalSignificance: "Namesake of the ancient Sangam landscape 'Marutham' (மருத நிலம் - fertile agricultural plains).",
     ecologicalRole: "Reinforces riverbanks and canal bunds against floods with subterranean anchor root systems.",
-    photoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.arjuna.mature,
     linkedTreeId: "TN-COL-00042"
   },
   {
@@ -134,7 +135,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Nilgiris foothills, Coimbatore, Dharmapuri, Theni",
     culturalSignificance: "Sangam literature celebrates the sweet purple fruit offered to legendary poet Avvaiyar.",
     ecologicalRole: "Stabilizes wetlands and lake perimeters; high nutritional provider for avifauna and communities.",
-    photoUrl: "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.jamun.mature,
     linkedTreeId: "TN-COL-00192"
   },
   {
@@ -149,7 +150,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Pudukkottai, Sivagangai, Ariyalur, Perambalur",
     culturalSignificance: "Sacred temple tree (ஸ்தல விருட்சம்). Seeds yield oil traditionally burnt in stone temple lamps.",
     ecologicalRole: "Provides nectar for pollinators during peak dry summer months when few other species flower.",
-    photoUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.mahua.mature,
     linkedTreeId: "TG-IND-001"
   },
   {
@@ -164,7 +165,7 @@ export const TN_NATIVE_TREES: NativeTreeInfo[] = [
     tamilNaduDistricts: "Krishnagiri, Dharmapuri, Salem, Dindigul, Theni",
     culturalSignificance: "Lining thousands of kilometers of Tamil Nadu highways; staple seasoning of Tamil culinary heritage.",
     ecologicalRole: "Functions as a robust windbreaker, shields crops against cyclonic gusts, and survives intense heatwaves.",
-    photoUrl: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?w=800&auto=format&fit=crop&q=80",
+    photoUrl: TREE_IMAGES.tamarind.mature,
     linkedTreeId: "TG-IND-001"
   }
 ];

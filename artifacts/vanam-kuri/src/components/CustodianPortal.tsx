@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { CustodianDiscoverModal } from './CustodianDiscoverModal';
 import { InteractiveMap } from './InteractiveMap';
 import { uploadApi } from '../lib/api';
+import { TREE_IMAGES, getTreeImages } from '../data/treeImages';
 import {
   TreePine,
   ShieldCheck,
@@ -63,7 +64,7 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
   const [isSubmitEvidenceOpen, setIsSubmitEvidenceOpen] = useState(false);
   const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
   const [selectedTreeForEvidence, setSelectedTreeForEvidence] = useState<Tree | null>(null);
-  const [evidencePhoto, setEvidencePhoto] = useState<string>('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80');
+  const [evidencePhoto, setEvidencePhoto] = useState<string>(TREE_IMAGES.neem.mature);
   const [evidenceNotes, setEvidenceNotes] = useState<string>('Bi-weekly watering completed. Healthy new leaf flushes visible.');
   const [evidenceHeight, setEvidenceHeight] = useState<number>(65);
   const [evidenceMoisture, setEvidenceMoisture] = useState<number>(70);
@@ -496,6 +497,7 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
                         <button
                           onClick={() => {
                             setSelectedTreeForEvidence(tree);
+                            setEvidencePhoto(tree.currentPhotoUrl || getTreeImages(tree.speciesName).mature);
                             setIsSubmitEvidenceOpen(true);
                           }}
                           className="py-2 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 transition-all text-center cursor-pointer flex items-center justify-center gap-1"
@@ -535,6 +537,7 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
               onClick={() => {
                 if (myTrees.length > 0) {
                   setSelectedTreeForEvidence(myTrees[0]);
+                  setEvidencePhoto(myTrees[0].currentPhotoUrl || getTreeImages(myTrees[0].speciesName).mature);
                   setIsSubmitEvidenceOpen(true);
                 }
               }}
@@ -590,6 +593,7 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
                   <button
                     onClick={() => {
                       setSelectedTreeForEvidence(tree);
+                      setEvidencePhoto(tree.currentPhotoUrl || getTreeImages(tree.speciesName).mature);
                       setIsSubmitEvidenceOpen(true);
                     }}
                     className="px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer"

@@ -3,6 +3,7 @@ import { Tree, CheckpointEvidence, CustodyRecord, MaintenanceLog, RiskItem, Orga
 import { sampleTrees, initialReliability, mockRiskQueue } from '../data/mockData';
 import { useAuth } from './AuthContext';
 import { treesApi, custodyApi, checkpointsApi, maintenanceApi, autopsyApi, authApi } from '../lib/api';
+import { getTreeImages } from '../data/treeImages';
 
 export interface AppUser {
   id: string;
@@ -208,8 +209,8 @@ export const DemoDataProvider: React.FC<{ children: ReactNode }> = ({ children }
           healthScore: bt.healthScore || 90,
           initialHeightCm: bt.initialHeightCm || 50,
           currentHeightCm: bt.currentHeightCm || 50,
-          initialPhotoUrl: bt.plantingPhotoUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
-          currentPhotoUrl: bt.currentPhotoUrl || bt.plantingPhotoUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+          initialPhotoUrl: bt.plantingPhotoUrl || getTreeImages(bt.species || 'Neem').sapling,
+          currentPhotoUrl: bt.currentPhotoUrl || bt.plantingPhotoUrl || getTreeImages(bt.species || 'Neem').mature,
           currentCustodian: bt.currentCustodian?.name || 'Unassigned',
           currentCustodianUnit: 'Green Tamil Nadu Grid',
           currentCustodianEmail: bt.currentCustodian?.email || '',
@@ -337,8 +338,8 @@ export const DemoDataProvider: React.FC<{ children: ReactNode }> = ({ children }
       healthScore: 92,
       initialHeightCm: treeData.initialHeightCm || 50,
       currentHeightCm: treeData.currentHeightCm || 50,
-      initialPhotoUrl: treeData.initialPhotoUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
-      currentPhotoUrl: treeData.currentPhotoUrl || treeData.initialPhotoUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+      initialPhotoUrl: treeData.initialPhotoUrl || getTreeImages(treeData.speciesName || 'Neem').sapling,
+      currentPhotoUrl: treeData.currentPhotoUrl || treeData.initialPhotoUrl || getTreeImages(treeData.speciesName || 'Neem').mature,
       currentCustodian: custodianName,
       currentCustodianUnit: custodianUnit,
       currentCustodianEmail: custodianEmail,
@@ -352,7 +353,7 @@ export const DemoDataProvider: React.FC<{ children: ReactNode }> = ({ children }
           submittedDate: new Date().toISOString().slice(0, 10),
           verifiedDate: new Date().toISOString().slice(0, 10),
           status: 'verified',
-          photoUrl: treeData.initialPhotoUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+          photoUrl: treeData.initialPhotoUrl || getTreeImages(treeData.speciesName || 'Neem').sapling,
           custodianName,
           verifierName: 'Certified Field Auditor',
           consistencyScore: 'HIGH_CONSISTENCY',
