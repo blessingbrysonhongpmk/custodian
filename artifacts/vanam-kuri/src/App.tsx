@@ -272,7 +272,7 @@ function MainContent({ onSignOut }: MainContentProps) {
       </header>
 
       {/* MAIN VIEW AREA */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 sm:px-8">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto p-4 sm:p-6 sm:px-8">
         {/* If viewing a specific Tree Passport, render Passport overlay with Back Button */}
         {viewingPassportTreeId ? (
           <div className="space-y-4 animate-fade-in">

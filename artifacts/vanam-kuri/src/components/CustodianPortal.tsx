@@ -28,7 +28,8 @@ import {
   Award,
   Activity,
   User,
-  Info
+  Info,
+  Home
 } from 'lucide-react';
 
 interface CustodianPortalProps {
@@ -164,19 +165,19 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
     showToast(`🎉 Responsibility accepted for ${treeId}! Added to your active trees.`);
   };
 
-  const navItems: { id: CustodianNavTab; labelEn: string; labelTa: string; count?: number }[] = [
-    { id: 'home', labelEn: 'Home', labelTa: 'முகப்பு' },
-    { id: 'my-trees', labelEn: 'My Trees', labelTa: 'என் மரங்கள்', count: myTrees.length },
-    { id: 'discover', labelEn: 'Discover', labelTa: 'கண்டறிக' },
-    { id: 'map', labelEn: 'Map', labelTa: 'வரைபடம்' },
-    { id: 'checkpoints', labelEn: 'Checkpoints', labelTa: 'தணிக்கைகள்', count: pendingCheckpoints.length },
-    { id: 'handover', labelEn: 'Handover', labelTa: 'பொறுப்பு மாற்றம்', count: incomingHandovers.length },
-    { id: 'activity', labelEn: 'Activity', labelTa: 'செயல்பாடுகள்' },
-    { id: 'profile', labelEn: 'Profile', labelTa: 'சுயவிவரம்' },
+  const navItems: { id: CustodianNavTab; labelEn: string; labelTa: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
+    { id: 'map', labelEn: 'Map View', labelTa: 'வரைபடம்', icon: MapPin },
+    { id: 'my-trees', labelEn: 'My Trees', labelTa: 'என் மரங்கள்', icon: TreePine, count: myTrees.length },
+    { id: 'checkpoints', labelEn: 'Checkpoints & Review', labelTa: 'தணிக்கைகள்', icon: ShieldCheck, count: pendingCheckpoints.length },
+    { id: 'home', labelEn: 'Overview', labelTa: 'முகப்பு கண்ணோட்டம்', icon: Home },
+    { id: 'handover', labelEn: 'Handovers', labelTa: 'பொறுப்பு மாற்றம்', icon: ArrowRightLeft, count: incomingHandovers.length },
+    { id: 'discover', labelEn: 'Discover Stewards', labelTa: 'கண்டறிக', icon: Search },
+    { id: 'activity', labelEn: 'Activity Feed', labelTa: 'செயல்பாடுகள்', icon: Activity },
+    { id: 'profile', labelEn: 'My Profile', labelTa: 'சுயவிவரம்', icon: User },
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in font-sans pb-12">
+    <div className="animate-fade-in font-sans pb-12">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2 animate-rise">
@@ -185,78 +186,124 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
         </div>
       )}
 
-      {/* Custodian Workspace Header */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className={`w-12 h-12 rounded-2xl ${currentUser.avatarBg} text-white flex items-center justify-center text-xl font-black shrink-0 shadow-sm mt-0.5`}>
-            {currentUser.name.charAt(0)}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                Custodian Workspace
+      {/* 2-COLUMN WORKSPACE: LEFT HEADINGS SIDEBAR + RIGHT WORKSPACE CONTENT */}
+      <div className="flex flex-col lg:flex-row items-start gap-6">
+        {/* LEFT SIDEBAR NAVIGATION */}
+        <aside className="w-full lg:w-64 shrink-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:sticky lg:top-20 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div className={`w-10 h-10 rounded-xl ${currentUser.avatarBg} text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs`}>
+              {currentUser.name.charAt(0)}
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                Custodian
               </span>
-              <span className="text-xs text-slate-400 font-mono">
-                ID: CUST-{currentUser.id.toUpperCase()}
+              <h2 className="text-xs font-bold text-slate-900 truncate mt-1">
+                {currentUser.name}
+              </h2>
+              <span className="text-[10px] text-slate-400 font-mono block truncate">
+                CUST-{currentUser.id.toUpperCase()}
               </span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
-              {language === 'ta' ? 'எனது பொறுப்பு' : 'My Responsibility'}
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              {currentUser.name} • {currentUser.organization} • {currentUser.location}
-            </p>
           </div>
-        </div>
 
-        {/* Quick Actions */}
-        <div className="flex items-center gap-2 self-end md:self-center">
-          <button
-            onClick={() => setActiveNav('discover')}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span>{language === 'ta' ? 'தேடல்' : 'Discover'}</span>
-          </button>
+          <div className="px-2 py-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              {language === 'ta' ? 'வழிசெலுத்தல் தலைப்புகள்' : 'Navigation'}
+            </span>
+          </div>
 
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveNav(item.id)}
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    isActive 
+                      ? 'bg-emerald-700 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <span className="truncate">{language === 'ta' ? item.labelTa : item.labelEn}</span>
+                  </div>
+                  {item.count !== undefined && item.count > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Quick Register Tree CTA on Sidebar */}
           {onOpenRegisterTree && (
-            <button
-              onClick={onOpenRegisterTree}
-              className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{language === 'ta' ? 'மரம் பதிவு' : 'Register Tree'}</span>
-            </button>
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                onClick={onOpenRegisterTree}
+                className="w-full py-2.5 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{language === 'ta' ? 'மரம் பதிவு' : 'Register Tree'}</span>
+              </button>
+            </div>
           )}
-        </div>
-      </div>
+        </aside>
 
-      {/* Custodian Navigation Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
-        {navItems.map((item) => {
-          const isActive = activeNav === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveNav(item.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-2 cursor-pointer ${
-                isActive 
-                  ? 'bg-emerald-700 text-white shadow-xs' 
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              <span>{language === 'ta' ? item.labelTa : item.labelEn}</span>
-              {item.count !== undefined && item.count > 0 && (
-                <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
-                  isActive ? 'bg-white/25 text-white' : 'bg-emerald-100 text-emerald-800'
-                }`}>
-                  {item.count}
-                </span>
+        {/* RIGHT WORKSPACE CONTENT */}
+        <div className="flex-1 min-w-0 w-full space-y-6">
+          {/* Custodian Workspace Header */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className={`w-12 h-12 rounded-2xl ${currentUser.avatarBg} text-white flex items-center justify-center text-xl font-black shrink-0 shadow-sm mt-0.5`}>
+                {currentUser.name.charAt(0)}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                    Custodian Workspace
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    ID: CUST-{currentUser.id.toUpperCase()}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+                  {language === 'ta' ? 'எனது பொறுப்பு' : 'My Responsibility'}
+                </h1>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {currentUser.name} • {currentUser.organization} • {currentUser.location}
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2 self-end md:self-center">
+              <button
+                onClick={() => setActiveNav('discover')}
+                className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Search className="w-3.5 h-3.5" />
+                <span>{language === 'ta' ? 'தேடல்' : 'Discover'}</span>
+              </button>
+
+              {onOpenRegisterTree && (
+                <button
+                  onClick={onOpenRegisterTree}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{language === 'ta' ? 'மரம் பதிவு' : 'Register Tree'}</span>
+                </button>
               )}
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </div>
 
       {/* INCOMING HANDOVERS ALERT BANNER (If any pending) */}
       {incomingHandovers.length > 0 && (
@@ -796,6 +843,8 @@ export const CustodianPortal: React.FC<CustodianPortalProps> = ({
           </div>
         </div>
       )}
+        </div>
+      </div>
 
       {/* MODAL: SUBMIT CHECKPOINT EVIDENCE */}
       {isSubmitEvidenceOpen && selectedTreeForEvidence && (

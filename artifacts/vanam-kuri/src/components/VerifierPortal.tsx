@@ -121,17 +121,17 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({ onOpenTree }) =>
     }
   };
 
-  const navItems: { id: VerifierNavTab; labelEn: string; labelTa: string }[] = [
-    { id: 'queue', labelEn: 'Verification Queue', labelTa: 'சரிபார்ப்பு வரிசை' },
-    { id: 'assignments', labelEn: 'My Assignments', labelTa: 'என் பணிகள்' },
-    { id: 'map', labelEn: 'Field Map', labelTa: 'கள வரைபடம்' },
-    { id: 'passports', labelEn: 'Tree Passport', labelTa: 'மர பாஸ்போர்ட்' },
-    { id: 'history', labelEn: 'History', labelTa: 'வரலாறு' },
-    { id: 'profile', labelEn: 'Profile', labelTa: 'சுயவிவரம்' },
+  const navItems: { id: VerifierNavTab; labelEn: string; labelTa: string; icon: React.ComponentType<{ className?: string }>; count?: number }[] = [
+    { id: 'map', labelEn: 'Field Map', labelTa: 'கள வரைபடம்', icon: MapPin },
+    { id: 'queue', labelEn: 'Verification Queue', labelTa: 'சரிபார்ப்பு வரிசை', icon: ShieldCheck, count: pendingQueue.length },
+    { id: 'assignments', labelEn: 'My Assignments', labelTa: 'என் பணிகள்', icon: FileCheck2 },
+    { id: 'passports', labelEn: 'Tree Passports', labelTa: 'மர பாஸ்போர்ட்', icon: FileText },
+    { id: 'history', labelEn: 'Audit History', labelTa: 'வரலாறு', icon: Clock },
+    { id: 'profile', labelEn: 'Auditor Profile', labelTa: 'சுயவிவரம்', icon: User },
   ];
 
   return (
-    <div className="space-y-6 animate-fade-in font-sans pb-12 max-w-6xl mx-auto">
+    <div className="animate-fade-in font-sans pb-12">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
@@ -140,62 +140,102 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({ onOpenTree }) =>
         </div>
       )}
 
-      {/* Verifier Header */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-700 text-white flex items-center justify-center text-xl font-black shrink-0 shadow-sm mt-0.5">
-            <ShieldCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                Peer Verifier Workspace
+      {/* 2-COLUMN WORKSPACE: LEFT HEADINGS SIDEBAR + RIGHT WORKSPACE CONTENT */}
+      <div className="flex flex-col lg:flex-row items-start gap-6">
+        {/* LEFT SIDEBAR NAVIGATION */}
+        <aside className="w-full lg:w-64 shrink-0 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 lg:sticky lg:top-20 space-y-4">
+          <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
+            <div className="w-10 h-10 rounded-xl bg-indigo-700 text-white flex items-center justify-center text-lg font-black shrink-0 shadow-xs">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-800 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                Peer Verifier
               </span>
-              <span className="text-xs text-slate-400 font-mono">
-                Verifier ID: {currentUser.id.toUpperCase()}
+              <h2 className="text-xs font-bold text-slate-900 truncate mt-1">
+                {currentUser.name}
+              </h2>
+              <span className="text-[10px] text-slate-400 font-mono block truncate">
+                AUDIT-{currentUser.id.toUpperCase()}
               </span>
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
-              {language === 'ta' ? 'சரிபார்ப்பு வரிசை' : 'Verification Queue'}
-            </h1>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
-              {currentUser.name} • {currentUser.roleTitle} • {currentUser.organization}
-            </p>
           </div>
-        </div>
 
-        {/* Verifier Stats */}
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-center">
-            <span className="block text-xl font-black text-slate-900">{pendingQueue.length}</span>
-            <span className="text-[10px] font-bold text-slate-500 uppercase">Pending Tasks</span>
+          <div className="px-2 py-0.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+              {language === 'ta' ? 'தணிக்கை தலைப்புகள்' : 'Audit Navigation'}
+            </span>
           </div>
-          <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 text-center">
-            <span className="block text-xl font-black text-emerald-700">{verifiedTodayQueue.length || 3}</span>
-            <span className="text-[10px] font-bold text-emerald-600 uppercase">Verified Today</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Verifier Navigation Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-slate-200">
-        {navItems.map((item) => {
-          const isActive = activeNav === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveNav(item.id)}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                isActive 
-                  ? 'bg-indigo-700 text-white shadow-xs' 
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              {language === 'ta' ? item.labelTa : item.labelEn}
-            </button>
-          );
-        })}
-      </div>
+          <nav className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveNav(item.id)}
+                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between cursor-pointer ${
+                    isActive 
+                      ? 'bg-indigo-700 text-white shadow-xs' 
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                    <span className="truncate">{language === 'ta' ? item.labelTa : item.labelEn}</span>
+                  </div>
+                  {item.count !== undefined && item.count > 0 && (
+                    <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-indigo-100 text-indigo-800'
+                    }`}>
+                      {item.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* RIGHT WORKSPACE CONTENT */}
+        <div className="flex-1 min-w-0 w-full space-y-6">
+          {/* Verifier Header */}
+          <div className="bg-white rounded-2xl p-5 sm:p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-700 text-white flex items-center justify-center text-xl font-black shrink-0 shadow-sm mt-0.5">
+                <ShieldCheck className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-800 bg-indigo-100 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                    Peer Verifier Workspace
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Verifier ID: {currentUser.id.toUpperCase()}
+                  </span>
+                </div>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
+                  {language === 'ta' ? 'சரிபார்ப்பு வரிசை' : 'Verification Queue'}
+                </h1>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  {currentUser.name} • {currentUser.roleTitle} • {currentUser.organization}
+                </p>
+              </div>
+            </div>
+
+            {/* Verifier Stats */}
+            <div className="flex items-center gap-3">
+              <div className="bg-slate-50 px-4 py-2 rounded-xl border border-slate-200 text-center">
+                <span className="block text-xl font-black text-slate-900">{pendingQueue.length}</span>
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Pending Tasks</span>
+              </div>
+              <div className="bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 text-center">
+                <span className="block text-xl font-black text-emerald-700">{verifiedTodayQueue.length || 3}</span>
+                <span className="text-[10px] font-bold text-emerald-600 uppercase">Verified Today</span>
+              </div>
+            </div>
+          </div>
 
       {/* FILTER TABS (Pending, In Review, Verified Today, Flagged) */}
       <div className="flex items-center gap-2">
@@ -539,6 +579,8 @@ export const VerifierPortal: React.FC<VerifierPortalProps> = ({ onOpenTree }) =>
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 };
