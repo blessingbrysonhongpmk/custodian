@@ -1,285 +1,535 @@
 import React, { useState } from 'react';
-import { useAuth, type UserRole } from '../context/AuthContext';
-import { isFirebaseConfigured } from '../lib/firebase';
-import { useTranslation } from 'react-i18next';
+import { useAuth, UserRole } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { TamilNaduSeal } from './TamilNaduSeal';
 import {
   Users,
   ShieldCheck,
   Building2,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
   ChevronRight,
   ArrowLeft,
-  Leaf
+  Globe,
+  Lock,
+  Mail,
+  Phone,
+  User,
+  MapPin,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles
 } from 'lucide-react';
 
 interface AuthScreenProps {
   onBack: () => void;
+  onSuccess?: (role: UserRole) => void;
+  defaultRole?: UserRole;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onBack }) => {
-  const { signIn, signUp, signInWithGoogle, enterDemoMode } = useAuth();
-  const { t } = useTranslation();
-  
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('');
+type AuthMode = 'select-role' | 'custodian-choice' | 'login' | 'register';
+
+export const AuthScreen: React.FC<AuthScreenProps> = ({ 
+  onBack, 
+  onSuccess,
+  defaultRole = 'custodian' 
+}) => {
+  const { signIn, signUp } = useAuth();
+  const { language, toggleLanguage } = useLanguage();
+
+  const [selectedRole, setSelectedRole] = useState<UserRole>(defaultRole);
+  const [authMode, setAuthMode] = useState<AuthMode>('select-role');
+
+  // Form states
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [location, setLocation] = useState('Chennai, Tamil Nadu');
+
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const firebaseReady = isFirebaseConfigured();
+  const handleRoleSelect = (role: UserRole) => {
+    setSelectedRole(role);
+    setErrorMessage(null);
 
-  const ROLES: { id: UserRole; icon: typeof Users; titleKey: string; descKey: string }[] = [
+    if (role === 'custodian') {
+      // Show "Are you already registered?" step
+      setAuthMode('custodian-choice');
+    } else {
+      // For Admin & Verifier, show direct authenticated login
+      setAuthMode('login');
+    }
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setLoading(true);
+
+    try {
+      const user = await signIn(identifier, password, selectedRole);
+      if (onSuccess) {
+        onSuccess(user.role);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Login failed. Please verify your credentials.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match. Please re-enter.');
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const user = await signUp({
+        name: fullName,
+        email: identifier,
+        phone,
+        password,
+        role: selectedRole,
+        organization,
+        location,
+      });
+
+      if (onSuccess) {
+        onSuccess(user.role);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Registration failed. Please check your details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const rolesList: { id: UserRole; title: string; titleTa: string; desc: string; descTa: string; icon: any }[] = [
     {
       id: 'custodian',
+      title: 'Tree Custodian',
+      titleTa: 'மரப் பாதுகாவலர்',
+      desc: 'Manage your assigned trees, log watering, and submit milestone checkpoints.',
+      descTa: 'ஒதுக்கப்பட்ட மரங்களை நிர்வகித்தல், பராமரிப்பு சான்றுகளை சமர்ப்பித்தல்.',
       icon: Users,
-      titleKey: 'roles.custodian.title',
-      descKey: 'roles.custodian.description',
     },
     {
       id: 'verifier',
+      title: 'Peer Verifier',
+      titleTa: 'கள சரிபார்ப்பாளர்',
+      desc: 'Review photographic evidence, inspect coordinates, and verify tree survival milestones.',
+      descTa: 'மரங்களின் வளர்ச்சி புகைப்பட சான்றுகளை ஆய்வு செய்து உறுதிப்படுத்துதல்.',
       icon: ShieldCheck,
-      titleKey: 'roles.verifier.title',
-      descKey: 'roles.verifier.description',
     },
     {
       id: 'admin',
+      title: 'State Administrator',
+      titleTa: 'அரசு நிர்வாகி',
+      desc: 'Central governance command center: trees, custodians, risk queue, and reports.',
+      descTa: 'மரங்கள், பொறுப்புகள், கள தணிக்கை மற்றும் முழு கணினி செயல்பாட்டை மேற்பார்வையிடுதல்.',
       icon: Building2,
-      titleKey: 'roles.admin.title',
-      descKey: 'roles.admin.description',
     },
   ];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedRole) return;
-    setError('');
-    setLoading(true);
-
-    try {
-      if (isSignUp) {
-        await signUp(email, password, selectedRole);
-      } else {
-        await signIn(email, password);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (!selectedRole) return;
-    setError('');
-    setLoading(true);
-    try {
-      await signInWithGoogle(selectedRole);
-    } catch (err: any) {
-      setError(err.message || 'Google sign-in failed.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDemoMode = () => {
-    enterDemoMode(selectedRole || 'admin');
-  };
-
   return (
-    <div className="min-h-screen bg-[#F8FAF8] flex flex-col md:flex-row">
-      {/* Left Side: Realistic Environmental Imagery (Hidden on small screens) */}
-      <div className="hidden md:flex w-1/2 bg-emerald-900 relative overflow-hidden items-end p-12">
-        <img 
-          src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=2000" 
-          alt="Lush green forest" 
-          className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#062817] via-[#062817]/60 to-transparent" />
-        
-        <div className="relative z-10 text-emerald-50 max-w-lg">
-          <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20">
-            <Leaf className="w-6 h-6 text-white" />
+    <div className="min-h-screen bg-[#F8FAF8] flex flex-col justify-between p-4 sm:p-8 font-sans selection:bg-[#006A4E] selection:text-white">
+      {/* Top Header */}
+      <header className="max-w-4xl mx-auto w-full flex items-center justify-between pb-4">
+        <button
+          onClick={() => {
+            if (authMode !== 'select-role') {
+              setAuthMode('select-role');
+              setErrorMessage(null);
+            } else {
+              onBack();
+            }
+          }}
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-[#006A4E] transition-colors p-2 rounded-lg hover:bg-slate-100 cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>{authMode !== 'select-role' ? (language === 'ta' ? 'பின்னே செல்' : 'Change Role') : (language === 'ta' ? 'முகப்பு' : 'Back to Home')}</span>
+        </button>
+
+        {/* Bilingual Language Switcher */}
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-white border border-slate-200 text-slate-700 hover:border-emerald-600 hover:text-emerald-700 transition-all shadow-2xs cursor-pointer"
+        >
+          <Globe className="w-3.5 h-3.5 text-[#006A4E]" />
+          <span>{language === 'ta' ? 'English' : 'தமிழ்'}</span>
+        </button>
+      </header>
+
+      {/* Main Form Container */}
+      <main className="max-w-md mx-auto w-full bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 my-auto">
+        {/* Brand & Seal */}
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-3">
+            <TamilNaduSeal size={52} />
           </div>
-          <h2 className="text-4xl font-extrabold tracking-tight mb-4">
-            {t('common.subtitle')}
-          </h2>
-          <p className="text-emerald-200 text-lg leading-relaxed">
-            A platform designed for scalable environmental programs, urban greenery management, and public-sector deployment.
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            {language === 'ta' ? 'பசுமை காவல்' : 'Pasumai Kaval'}
+          </h1>
+          <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mt-0.5">
+            {language === 'ta' ? 'தமிழ்நாடு அரசு சுற்றுச்சூழல் ஆளுகை' : 'Government of Tamil Nadu Environmental Governance'}
           </p>
         </div>
-      </div>
 
-      {/* Right Side: Auth Form */}
-      <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-12">
-        <div className="w-full max-w-md">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-emerald-700 mb-8 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to home
-          </button>
+        {/* Error Notification */}
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-700 flex items-start gap-2 animate-fade-in">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
-          <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
-              {t('common.welcome')}
-            </h1>
-            <p className="text-sm text-slate-500">
-              Select your role to continue
+        {/* SCREEN 1: SELECT YOUR ROLE */}
+        {authMode === 'select-role' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-base font-bold text-slate-800">
+                {language === 'ta' ? 'உங்கள் பொறுப்பைத் தேர்ந்தெடுக்கவும்' : 'Select your role to continue'}
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {language === 'ta' 
+                  ? 'பாதுகாவலர், சரிபார்ப்பாளர் அல்லது நிர்வாகி கணக்கில் நுழையவும்'
+                  : 'Enter as an assigned custodian, field auditor, or state administrator'}
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {rolesList.map((r) => {
+                const Icon = r.icon;
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => handleRoleSelect(r.id)}
+                    className="w-full p-4 rounded-xl border border-slate-200 hover:border-[#006A4E] hover:bg-emerald-50/40 text-left transition-all cursor-pointer flex items-start justify-between gap-3 shadow-2xs group"
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-[#006A4E] group-hover:text-white text-slate-600 flex items-center justify-center shrink-0 transition-colors mt-0.5">
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 group-hover:text-[#004D38] transition-colors">
+                          {language === 'ta' ? r.titleTa : r.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed font-medium">
+                          {language === 'ta' ? r.descTa : r.desc}
+                        </p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#006A4E] group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* SCREEN 2: CUSTODIAN ENTRY CHOICE ("Already registered?") */}
+        {authMode === 'custodian-choice' && (
+          <div className="space-y-5 animate-fade-in text-center">
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-[#006A4E] flex items-center justify-center mx-auto mb-2">
+                <Users className="w-6 h-6" />
+              </div>
+              <h2 className="text-lg font-black text-slate-900">
+                {language === 'ta' ? 'மரப் பாதுகாவலர் தளம்' : 'Tree Custodian Access'}
+              </h2>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                {language === 'ta' ? 'நீங்கள் ஏற்கனவே பதிவு செய்துள்ளீர்களா?' : 'Are you already registered with Pasumai Kaval?'}
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setAuthMode('login')}
+                className="w-full py-3.5 px-4 rounded-xl bg-[#006A4E] hover:bg-[#00523C] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{language === 'ta' ? 'ஆம், ஏற்கனவே கணக்கு உள்ளது' : 'Yes, I already have an account'}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAuthMode('register')}
+                className="w-full py-3.5 px-4 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{language === 'ta' ? 'இல்லை, நான் புதிய பாதுகாவலர்' : "No, I'm a new custodian"}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-400">
+              New custodians can register their institution, student club, or local neighborhood responsibility.
             </p>
           </div>
+        )}
 
-          {/* Role Selection */}
-          <div className="space-y-3 mb-8">
-            {ROLES.map((role) => {
-              const Icon = role.icon;
-              const isSelected = selectedRole === role.id;
-              return (
+        {/* SCREEN 3: AUTHENTICATED LOGIN */}
+        {authMode === 'login' && (
+          <form onSubmit={handleLoginSubmit} className="space-y-4 animate-fade-in">
+            <div className="text-center mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                {selectedRole.toUpperCase()} LOGIN
+              </span>
+              <h2 className="text-base font-bold text-slate-800 mt-1">
+                {language === 'ta' ? 'கணக்கில் உள்நுழைக' : 'Sign in to your account'}
+              </h2>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'ta' ? 'மின்னஞ்சல் அல்லது தொலைபேசி' : 'Email or Phone Number'}
+              </label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  required
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  placeholder="e.g. arun.kumar@campus.edu.in"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-[#006A4E]/30 focus:border-[#006A4E]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-bold text-slate-700">
+                  {language === 'ta' ? 'கடவுச்சொல்' : 'Password'}
+                </label>
                 <button
-                  key={role.id}
-                  onClick={() => setSelectedRole(role.id)}
-                  className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-4 ${
-                    isSelected
-                      ? 'bg-emerald-50 border-emerald-500 shadow-sm ring-1 ring-emerald-500'
-                      : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50 shadow-sm'
-                  }`}
+                  type="button"
+                  onClick={() => alert('Password recovery link dispatched to your registered contact.')}
+                  className="text-[10px] text-slate-500 hover:text-[#006A4E] font-medium"
                 >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                      isSelected ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-sm font-bold ${isSelected ? 'text-emerald-900' : 'text-slate-900'}`}>
-                        {t(role.titleKey)}
-                      </span>
-                      {isSelected && (
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center">
-                          <span className="w-2 h-2 rounded-full bg-white"></span>
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">{t(role.descKey)}</p>
-                  </div>
+                  Forgot password?
                 </button>
-              );
-            })}
-          </div>
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-[#006A4E]/30 focus:border-[#006A4E]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
 
-          {/* Auth Form — only if Firebase is configured */}
-          {selectedRole && firebaseReady && (
-            <form onSubmit={handleSubmit} className="space-y-4 mb-6 animate-fade-in">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#006A4E] hover:bg-[#00523C] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-2 disabled:opacity-70"
+            >
+              {loading ? (
+                <span>Authenticating...</span>
+              ) : (
+                <>
+                  <span>{language === 'ta' ? 'உள்நுழைக' : 'Sign In'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+
+            {selectedRole === 'custodian' && (
+              <p className="text-center text-xs text-slate-500 pt-2">
+                New custodian?{' '}
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('register')}
+                  className="text-[#006A4E] font-bold hover:underline"
+                >
+                  Create an account
+                </button>
+              </p>
+            )}
+          </form>
+        )}
+
+        {/* SCREEN 4: NEW CUSTODIAN REGISTRATION */}
+        {authMode === 'register' && (
+          <form onSubmit={handleRegisterSubmit} className="space-y-3 animate-fade-in">
+            <div className="text-center mb-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                NEW CUSTODIAN REGISTRATION
+              </span>
+              <h2 className="text-base font-bold text-slate-800 mt-1">
+                {language === 'ta' ? 'புதிய பாதுகாவலர் பதிவு' : 'Create Custodian Account'}
+              </h2>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'ta' ? 'முழுப் பெயர்' : 'Full Name'}
+              </label>
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Arun Kumar"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wide">Email</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {language === 'ta' ? 'மின்னஞ்சல்' : 'Email'}
+                </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your@email.com"
-                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all bg-white shadow-sm"
                     required
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    placeholder="arun@campus.edu"
+                    className="w-full pl-9 pr-2 py-2 rounded-xl border border-slate-200 text-xs font-medium"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1.5 uppercase tracking-wide">{t('auth.passwordLabel')}</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  {language === 'ta' ? 'தொலைபேசி' : 'Phone'}
+                </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={t('auth.passwordPlaceholder')}
-                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all bg-white shadow-sm"
-                    required
-                    minLength={6}
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full pl-9 pr-2 py-2 rounded-xl border border-slate-200 text-xs font-medium"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
+            </div>
 
-              {error && (
-                <p className="text-xs text-red-600 bg-red-50 px-4 py-3 rounded-xl border border-red-200 font-medium">
-                  {error}
-                </p>
-              )}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'ta' ? 'நிறுவனம் / கல்லூரி / சங்கம்' : 'Organization / Institution / NSS Club'}
+              </label>
+              <input
+                type="text"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                placeholder="e.g. Loyola Green Club • NSS Unit 4"
+                className="w-full p-2 rounded-xl border border-slate-200 text-xs font-medium"
+              />
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2"
-              >
-                {loading ? 'Signing in...' : isSignUp ? 'Create Account' : 'Sign In'}
-                {!loading && <ChevronRight className="w-4 h-4" />}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="w-full text-xs text-slate-500 hover:text-emerald-700 font-bold transition-colors text-center"
-              >
-                {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
-              </button>
-
-              {/* Google Sign In */}
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-slate-200"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-[#F8FAF8] px-3 text-slate-400 font-bold uppercase tracking-wider">or</span>
-                </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'ta' ? 'மாவட்டம் / இடம்' : 'Location / District'}
+              </label>
+              <div className="relative">
+                <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="Chennai, Tamil Nadu"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs font-medium"
+                />
               </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-3"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                </svg>
-                Continue with Google
-              </button>
-            </form>
-          )}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-2 rounded-xl border border-slate-200 text-xs font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Confirm</label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-2 rounded-xl border border-slate-200 text-xs font-medium"
+                />
+              </div>
+            </div>
 
-          {/* Demo Mode Button */}
-          <div className={`${firebaseReady && selectedRole ? 'mt-6 pt-6 border-t border-slate-200' : 'mt-4'}`}>
             <button
-              onClick={handleDemoMode}
-              className="w-full py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2"
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#006A4E] hover:bg-[#00523C] text-white text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer mt-3 disabled:opacity-70"
             >
-              Continue in Demo Mode
-              <ChevronRight className="w-4 h-4" />
+              {loading ? (
+                <span>Creating Account...</span>
+              ) : (
+                <>
+                  <span>{language === 'ta' ? 'கணக்கை உருவாக்கவும்' : 'Create Custodian Account'}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
             </button>
-            <p className="text-center text-[10px] text-slate-400 mt-3 uppercase tracking-wider font-bold">
-              No login required. Explore mock data.
+
+            <p className="text-center text-xs text-slate-500 pt-1">
+              Already have an account?{' '}
+              <button
+                type="button"
+                onClick={() => setAuthMode('login')}
+                className="text-[#006A4E] font-bold hover:underline"
+              >
+                Sign In
+              </button>
             </p>
-          </div>
-        </div>
-      </div>
+          </form>
+        )}
+      </main>
+
+      {/* Official Footer */}
+      <footer className="max-w-4xl mx-auto w-full text-center text-[11px] text-slate-500 pt-4">
+        <p>
+          Pasumai Kaval • Department of Environment, Climate Change & Forests • Government of Tamil Nadu
+        </p>
+      </footer>
     </div>
   );
 };

@@ -181,4 +181,5 @@ export type ActiveTab =
   | 'custodian-view' 
   | 'impact-report'
   | 'register-tree'
-  | 'verification-queue';
+  | 'verification-queue'
+  | 'native-trees';

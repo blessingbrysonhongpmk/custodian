@@ -158,25 +158,7 @@ router.get("/notifications", async (req, res) => {
   }
 });
 
-// GET /api/users — List users (for custodian selection)
-router.get("/users", async (req, res) => {
-  try {
-    if (!db) return res.status(503).json({ error: "Database not connected" });
 
-    const { role } = req.query;
-    let query = db.select().from(schema.usersTable).$dynamic();
-    
-    if (role && typeof role === "string") {
-      query = query.where(eq(schema.usersTable.role, role as any));
-    }
-
-    const users = await query;
-    res.json({ users });
-  } catch (err) {
-    console.error("GET /users error:", err);
-    res.status(500).json({ error: "Failed to fetch users" });
-  }
-});
 
 // GET /api/organizations — List organizations
 router.get("/organizations", async (_req, res) => {

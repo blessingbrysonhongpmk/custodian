@@ -1,77 +1,52 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  Tree, 
-  ActiveTab, 
-  ActiveRole, 
-  OrganizationReliability, 
-  RiskItem, 
-  FailureAutopsy, 
-  EvidenceConsistency 
-} from './types/custodia';
-import { 
-  initialReliability, 
-  sampleTrees, 
-  mockRiskQueue, 
-  pilotTree 
-} from './data/mockData';
+import React, { useState, useEffect } from 'react';
+import { Tree, EvidenceConsistency, FailureAutopsy } from './types/custodia';
 
-import { treesApi, dashboardApi, demoApi } from './lib/api';
-import { isFirebaseConfigured } from './lib/firebase';
-import { treeService } from './services/treeService';
-import { riskService } from './services/riskService';
-import { notificationService } from './services/notificationService';
-
-// Auth & Language
+// Auth, Language & Data State
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { ProgramHealthProvider } from './context/ProgramHealthContext';
+import { DemoDataProvider, useDemoData } from './context/DemoDataContext';
 
-// Pages
+// Pages & Screens
 import { LandingPage } from './components/LandingPage';
 import { AuthScreen } from './components/AuthScreen';
 
-// Components
-import { Sidebar } from './components/Sidebar';
-import { DemoScenarioRunner } from './components/DemoScenarioRunner';
-import { VerificationQueueView } from './components/VerificationQueueView';
-import { DashboardView } from './components/DashboardView';
-import { TreePassportView } from './components/TreePassportView';
-import { InteractiveMap } from './components/InteractiveMap';
-import { RiskCenterView } from './components/RiskCenterView';
-import { FailureInsightsView } from './components/FailureInsightsView';
-import { CustodianMobileView } from './components/CustodianMobileView';
-import { ImpactReportView } from './components/ImpactReportView';
+// Three Role-Specific Portals
+import { AdminPortal } from './components/AdminPortal';
+import { CustodianPortal } from './components/CustodianPortal';
+import { VerifierPortal } from './components/VerifierPortal';
 
-// Modals
+// Shared Components & Modals
+import { CustodianDiscoverModal } from './components/CustodianDiscoverModal';
+import { TreePassportView } from './components/TreePassportView';
+import { RegisterTreeModal } from './components/RegisterTreeModal';
 import { CustodyHandoffModal } from './components/CustodyHandoffModal';
 import { PeerVerificationModal } from './components/PeerVerificationModal';
 import { FailureAutopsyModal } from './components/FailureAutopsyModal';
-import { RegisterTreeModal } from './components/RegisterTreeModal';
+import { TamilNaduSeal } from './components/TamilNaduSeal';
 
-import { Search, Bell, Globe, LogOut } from 'lucide-react';
+import { Search, Globe, LogOut, ArrowLeft, User, Shield, CheckCircle2 } from 'lucide-react';
 
 type AppView = 'landing' | 'auth' | 'app';
 
 function AppRouter() {
-  const { user, isDemo, signOut, enterDemoMode } = useAuth();
+  const { user, signOut } = useAuth();
   const [view, setView] = useState<AppView>(() => {
-    // If user is already authenticated or in demo, go straight to app
     if (user) return 'app';
     return 'landing';
   });
 
   useEffect(() => {
-    if (user) setView('app');
+    if (user) {
+      setView('app');
+    }
   }, [user]);
 
   if (view === 'landing') {
     return (
       <LandingPage
         onGetStarted={() => setView('auth')}
-        onViewDemo={() => {
-          enterDemoMode('admin');
-          setView('app');
-        }}
+        onViewDemo={() => setView('auth')}
       />
     );
   }
@@ -81,7 +56,14 @@ function AppRouter() {
       setView('app');
       return null;
     }
-    return <AuthScreen onBack={() => setView('landing')} />;
+    return (
+      <AuthScreen 
+        onBack={() => setView('landing')} 
+        onSuccess={() => {
+          setView('app');
+        }}
+      />
+    );
   }
 
   if (!user) {
@@ -104,536 +86,324 @@ interface MainContentProps {
 }
 
 function MainContent({ onSignOut }: MainContentProps) {
-  const { user, isDemo, activeRole, setActiveRole } = useAuth();
+  const { user } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
-
-  // API-driven state with mock data fallback
-  const [trees, setTrees] = useState<Tree[]>(sampleTrees);
-  const [reliability, setReliability] = useState<OrganizationReliability>(initialReliability);
-  const [riskItems, setRiskItems] = useState<RiskItem[]>(mockRiskQueue);
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [apiConnected, setApiConnected] = useState<boolean>(false);
-  const [globalSearch, setGlobalSearch] = useState<string>('');
   
-  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
-    if (activeRole === 'ADMIN') return 'dashboard';
-    if (activeRole === 'CUSTODIAN') return 'custodian-view';
-    if (activeRole === 'PEER_VERIFIER') return 'verification-queue';
-    return 'dashboard';
-  });
-  const [selectedTreeId, setSelectedTreeId] = useState<string>('TG-IND-001');
-  const [demoStep, setDemoStep] = useState<number>(0);
+  // Unified single source of truth across all 3 roles
+  const {
+    trees,
+    currentUser,
+    reliability,
+    riskItems,
+    registerTree,
+    editTree,
+    assignCustodian,
+    verifyCheckpoint,
+  } = useDemoData();
+
+  // Active passport viewing state
+  const [viewingPassportTreeId, setViewingPassportTreeId] = useState<string | null>(null);
+  
+  // Universal Search Modal
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
 
   // Modals state
   const [handoffModalTree, setHandoffModalTree] = useState<Tree | null>(null);
   const [verificationModalTree, setVerificationModalTree] = useState<Tree | null>(null);
   const [autopsyModalTree, setAutopsyModalTree] = useState<Tree | null>(null);
-  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState<boolean>(false);
-  const [notificationToast, setNotificationToast] = useState<string | null>(null);
-
-  const selectedTree = trees.find(t => t.id === selectedTreeId) || trees[0];
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
-    setNotificationToast(message);
-    setTimeout(() => {
-      setNotificationToast(null);
-    }, 3500);
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Try loading data from API, fall back to mock data
-  const loadFromApi = useCallback(async () => {
-    try {
-      const dashboardData = await dashboardApi.getMetrics();
-      setReliability({
-        projectName: dashboardData.projectName || "Green Campus Initiative 2024–2027",
-        totalPlanted: dashboardData.totalPlanted,
-        verifiedAlive: dashboardData.verifiedAlive,
-        atRiskCount: dashboardData.atRiskCount,
-        failedCount: dashboardData.failedCount,
-        orphanedCount: dashboardData.orphanedCount,
-        claimedSurvivalRate: dashboardData.claimedSurvivalRate,
-        verifiedSurvivalRate: dashboardData.verifiedSurvivalRate,
-        verificationGap: dashboardData.verificationGap,
-        custodyContinuityRate: dashboardData.custodyContinuityRate,
-        checkpointComplianceRate: dashboardData.checkpointComplianceRate,
-        riskRecoveryRate: dashboardData.riskRecoveryRate,
-        topFailureCause: dashboardData.topFailureCause,
-        dominantFailureZone: dashboardData.dominantFailureZone,
-      });
-      setApiConnected(true);
-    } catch {
-      console.log("ℹ API not connected — using demo data.");
-    }
-
-    try {
-      if (isFirebaseConfigured()) {
-        const supabaseTrees = await treeService.getTrees();
-        if (supabaseTrees.length > 0) {
-          setTrees(supabaseTrees);
-        }
+  // Keyboard shortcut for Universal Search (Ctrl+K or Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsSearchModalOpen(prev => !prev);
       }
-    } catch {
-      // Keep mock trees
-    }
-
-    try {
-      if (isFirebaseConfigured()) {
-        const risksData = await riskService.getRisks();
-        if (risksData && risksData.length > 0) {
-          setRiskItems(risksData.map((r: any) => ({
-            id: `RISK-${r.id}`,
-            treeId: r.trees?.tree_code || `Tree-${r.tree_id}`,
-            treeSpecies: r.trees?.species || "Unknown",
-            zone: "Campus",
-            landmark: "",
-            status: r.risk_type === "no_custodian" ? "orphaned" : "at-risk" as any,
-            severity: r.severity,
-            title: r.reason?.split(".")[0] || "Risk Event",
-            reason: r.reason,
-            daysOverdue: 0,
-            custodianName: r.profiles?.name || "Unassigned",
-            actionRequired: "Review required",
-            suggestedActionType: r.risk_type === "no_custodian" ? "REASSIGN" : "VERIFY" as any,
-          })));
-        }
-      }
-    } catch { /* keep mock */ }
-
-    try {
-      if (isFirebaseConfigured()) {
-        const notifData = await notificationService.getNotifications();
-        if (notifData && notifData.length > 0) {
-          setNotifications(notifData);
-        }
-      }
-    } catch { /* ignore */ }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  useEffect(() => {
-    loadFromApi();
-  }, [loadFromApi]);
-
-  // Demo Runner Script Handler
-  const handleDemoStepChange = async (stepIndex: number) => {
-    setDemoStep(stepIndex);
-    switch (stepIndex) {
-      case 0:
-        setActiveTab('dashboard');
-        setActiveRole('ADMIN');
-        showToast("Step 1: 500 trees in program. Dashboard shows custody overview.");
-        break;
-      case 1:
-        setSelectedTreeId('TG-IND-001');
-        setActiveTab('passport');
-        setActiveRole('CUSTODIAN');
-        showToast("Step 2: Custodian Arun Kumar graduating. Tree TG-IND-001 custody expires in 14 days.");
-        break;
-      case 2:
-        setSelectedTreeId('TG-IND-001');
-        setActiveTab('passport');
-        setHandoffModalTree(pilotTree);
-        showToast("Step 3: Custody risk detected. Successor recommendation engine finds candidates.");
-        break;
-      case 3:
-        setSelectedTreeId('TG-IND-001');
-        setActiveTab('passport');
-        setActiveRole('PEER_VERIFIER');
-        setVerificationModalTree(pilotTree);
-        showToast("Step 4: Priya accepts responsibility. Custody chain transfers successfully.");
-        break;
-      case 4:
-        setSelectedTreeId('TN-COL-00042');
-        setActiveTab('autopsy');
-        setActiveRole('ADMIN');
-        showToast("Step 5: Checkpoint submitted. Photo-assisted health review completed.");
-        break;
-      case 5:
-        setActiveTab('impact-report');
-        setActiveRole('ADMIN');
-        showToast("Step 6: Dashboard updated. Custody gap prevented. No tree left behind.");
-        break;
-      default:
-        break;
-    }
-
-    if (apiConnected) {
-      try {
-        const actions = ["today", "today", "today", "today", "today", "today"];
-        await demoApi.timeTravel(actions[stepIndex] || "today");
-        await loadFromApi();
-      } catch { /* ignore */ }
-    }
+  // Handle Tree Registration
+  const handleTreeRegistered = (newTreeData: Tree) => {
+    setIsRegisterModalOpen(false);
+    showToast(`✅ Registered ${newTreeData.id} (${newTreeData.speciesName}) in shared database!`);
   };
 
-  // Role Selection Handler
-  const handleSelectRole = (role: ActiveRole) => {
-    setActiveRole(role);
-    if (role === 'ADMIN') {
-      setActiveTab('dashboard');
-    } else if (role === 'CUSTODIAN') {
-      setActiveTab('custodian-view');
-    } else if (role === 'PEER_VERIFIER') {
-      setActiveTab('verification-queue');
-    }
+  // Handle Handoff Success
+  const handleHandoffSuccess = async (treeId: string, newCustodianName: string, newUnit: string) => {
+    await assignCustodian(treeId, newCustodianName, newUnit);
+    setHandoffModalTree(null);
+    showToast(`🎉 Custody of Tree ${treeId} successfully transferred to ${newCustodianName}.`);
   };
 
-  // Custody Handoff Success Handler
-  const handleHandoffSuccess = (treeId: string, newCustodianName: string, newUnit: string) => {
-    setTrees(prev => prev.map(t => {
-      if (t.id === treeId) {
-        const updatedHistory = t.custodyHistory.map(c => ({ ...c, active: false }));
-        updatedHistory.push({
-          id: `CUST-${Date.now().toString().slice(-4)}`,
-          custodianName: newCustodianName,
-          custodianRole: "Lead Custodian",
-          custodianEmail: `${newCustodianName.toLowerCase().replace(' ', '.')}@campus.edu`,
-          organizationUnit: newUnit,
-          assignedDate: new Date().toISOString().slice(0, 10),
-          checkpointsCompleted: 0,
-          checkpointsTotal: 4,
-          handoffReason: undefined,
-          pledgeSigned: true,
-          certificateId: `CERT-TG-${Date.now().toString().slice(-8)}`,
-          active: true,
-        });
-
-        return {
-          ...t,
-          currentCustodian: newCustodianName,
-          currentCustodianUnit: newUnit,
-          activeAlert: undefined,
-          custodyHistory: updatedHistory,
-        };
-      }
-      return t;
-    }));
-
-    setRiskItems(prev => prev.filter(r => r.treeId !== treeId));
-    showToast(`Custody for Tree ${treeId} successfully transferred to ${newCustodianName}.`);
-    if (apiConnected) loadFromApi();
-  };
-
-  // Verification Submission Handler
-  const handleVerificationSubmitted = (
-    treeId: string, 
+  // Handle Verification Submission
+  const handleVerificationSubmitted = async (
+    treeId: string,
     status: 'healthy' | 'at-risk' | 'failed' | 'mismatch',
-    consistency: EvidenceConsistency,
+    _consistency: EvidenceConsistency,
     verifierNotes: string
   ) => {
-    setTrees(prev => prev.map(t => {
-      if (t.id === treeId) {
-        return {
-          ...t,
-          status,
-          healthScore: status === 'healthy' ? 95 : status === 'at-risk' ? 52 : 0,
-        };
-      }
-      return t;
-    }));
-
-    showToast(`Verification recorded for Tree ${treeId}. Status: ${status.toUpperCase()}.`);
+    const decision = status === 'healthy' ? 'APPROVE' : status === 'mismatch' ? 'FLAG' : 'RECHECK';
+    const res = await verifyCheckpoint(treeId, '6-month', decision, verifierNotes);
+    if (!res.success) {
+      showToast(`❌ ${res.error}`);
+    } else {
+      showToast(`✅ Verification recorded for Tree ${treeId}. Status: ${status.toUpperCase()}`);
+    }
+    setVerificationModalTree(null);
   };
 
-  // Autopsy Saved Handler
-  const handleAutopsySaved = (treeId: string, autopsy: FailureAutopsy) => {
-    setTrees(prev => prev.map(t => {
-      if (t.id === treeId) {
-        return {
-          ...t,
-          status: 'failed',
-          healthScore: 0,
-          failureAutopsy: autopsy,
-        };
-      }
-      return t;
-    }));
-
-    showToast(`Failure record saved for Tree ${treeId}.`);
+  // Handle Autopsy Saved
+  const handleAutopsySaved = async (treeId: string, autopsy: FailureAutopsy) => {
+    await editTree(treeId, {
+      status: 'failed',
+      healthScore: 0,
+      failureAutopsy: autopsy,
+    });
+    setAutopsyModalTree(null);
+    showToast(`Saved failure autopsy record for Tree ${treeId}.`);
   };
 
-  // Register New Tree Handler
-  const handleTreeRegistered = (newTree: Tree) => {
-    setTrees(prev => [newTree, ...prev]);
-    setReliability(prev => ({
-      ...prev,
-      totalPlanted: prev.totalPlanted + 1,
-      verifiedAlive: prev.verifiedAlive + 1,
-    }));
-    setSelectedTreeId(newTree.id);
-    setActiveTab('passport');
-    showToast(`Tree Passport created for ${newTree.id} (${newTree.speciesName}).`);
-    if (apiConnected) loadFromApi();
-  };
+  // Find currently inspected passport tree
+  const activePassportTree = trees.find(t => t.id === viewingPassportTreeId) || trees[0];
 
-  // Get display name
-  const displayName = user?.displayName || 'User';
-  const roleLabel = activeRole === 'ADMIN' ? 'Program Admin' : activeRole === 'PEER_VERIFIER' ? 'Field Verifier' : 'Custodian';
+  // User role styling
+  const roleBadgeStyle = user?.role === 'admin'
+    ? 'bg-purple-50 text-purple-900 border-purple-200'
+    : user?.role === 'verifier'
+    ? 'bg-indigo-50 text-indigo-900 border-indigo-200'
+    : 'bg-emerald-50 text-emerald-900 border-emerald-200';
+
+  const roleLabel = user?.role === 'admin'
+    ? (language === 'ta' ? 'மாநில நிர்வாகி' : 'ADMINISTRATOR')
+    : user?.role === 'verifier'
+    ? (language === 'ta' ? 'கள தணிக்கையாளர்' : 'PEER VERIFIER')
+    : (language === 'ta' ? 'மரப் பாதுகாவலர்' : 'CUSTODIAN');
 
   return (
-    <div className="h-screen nature-bg text-slate-900 flex flex-row antialiased overflow-hidden">
-      {/* Top Floating Notification Toast */}
-      {notificationToast && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-xl border border-slate-700 text-xs font-medium flex items-center gap-2 animate-rise max-w-xl">
+    <div className="min-h-screen bg-[#F8FAF8] text-slate-900 flex flex-col font-sans antialiased selection:bg-[#006A4E] selection:text-white">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-5 py-2.5 rounded-xl shadow-2xl border border-slate-700 text-xs font-semibold flex items-center gap-2 animate-rise max-w-xl">
           <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
-          <span>{notificationToast}</span>
+          <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Main Sidebar */}
-      <Sidebar
-        activeTab={activeTab}
-        onSelectTab={(tab) => setActiveTab(tab)}
-        activeRole={activeRole}
-        onSelectRole={handleSelectRole}
-        onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
-        riskCount={riskItems.length}
-      />
-
-      {/* Main Content Body */}
-      <main className="flex-1 min-w-0 overflow-y-auto relative flex flex-col">
-        {/* API Connection Status */}
-        {!apiConnected && (
-          <div className="bg-amber-50/90 border-b border-amber-200 text-amber-800 text-xs text-center py-1.5 px-4 font-medium sticky top-0 z-30 backdrop-blur-sm">
-            Running with demo data — Start the API server for live data
-          </div>
-        )}
-
-        {/* Top Navigation Header */}
-        <header className="px-6 py-3.5 flex items-center justify-between gap-4 border-b border-slate-200/60 bg-white/80 backdrop-blur-md sticky top-0 z-20">
-          <div className="flex items-center gap-3 flex-1 max-w-xl">
-            <div className="relative w-full">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder="Search trees, custodians, locations..." 
-                value={globalSearch}
-                onChange={(e) => setGlobalSearch(e.target.value)}
-                className="w-full bg-white pl-10 pr-4 py-2 rounded-xl text-xs font-medium border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all placeholder:text-slate-400"
-              />
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {/* Tamil / English Switcher */}
-            <button 
-              onClick={toggleLanguage}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-semibold transition-all cursor-pointer"
-              title={language === 'ta' ? 'Switch to English' : 'தமிழுக்கு மாறவும்'}
-            >
-              <Globe className="w-3.5 h-3.5 text-slate-500" />
-              <span>{language === 'ta' ? 'English' : 'தமிழ்'}</span>
-            </button>
-
-            {/* Notification Bell */}
-            <button 
-              onClick={() => setActiveTab('risk-center')}
-              className="relative p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-colors"
-              title="Notifications"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center border-2 border-white">
-                {riskItems.length > 9 ? '9+' : riskItems.length}
+      {/* TOP UNIVERSAL HEADER */}
+      <header className="px-4 sm:px-8 py-3 flex items-center justify-between gap-4 border-b border-slate-200/80 bg-white/95 backdrop-blur-md sticky top-0 z-30 shadow-2xs">
+        {/* Left: State Seal & Brand Title */}
+        <div className="flex items-center gap-3">
+          <TamilNaduSeal size={36} />
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-slate-900 leading-tight">
+                PASUMAI KAVAL
+              </h1>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md border text-[10px] font-mono font-bold uppercase tracking-wider ${roleBadgeStyle}`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-current shrink-0" />
+                <span>{roleLabel}</span>
               </span>
-            </button>
+            </div>
+            <p className="text-[10px] text-slate-500 font-medium leading-none mt-0.5 hidden sm:block">
+              {language === 'ta' ? 'மரப் பாதுகாப்பு மற்றும் தொடர் கண்காணிப்பு தளம்' : 'Department of Environment, Climate Change & Forests • Govt. of Tamil Nadu'}
+            </p>
+          </div>
+        </div>
 
-            {/* User Profile */}
-            <div className="flex items-center gap-2.5 bg-white pl-1.5 pr-3 py-1 rounded-full border border-slate-200 cursor-default">
-              <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-700">
-                {displayName.charAt(0)}
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-semibold text-slate-800 leading-tight">
-                  {displayName}
-                </p>
-                <p className="text-[10px] text-slate-500 font-medium leading-none mt-0.5">
-                  {roleLabel} {isDemo && '(Demo)'}
-                </p>
+        {/* Center: Universal Search */}
+        <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
+          <div 
+            onClick={() => setIsSearchModalOpen(true)}
+            className="w-full relative flex items-center bg-slate-50 hover:bg-slate-100/80 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-400 cursor-pointer transition-all shadow-2xs group"
+          >
+            <Search className="w-3.5 h-3.5 text-slate-400 mr-2.5 group-hover:text-emerald-700 transition-colors" />
+            <span className="truncate">Search custodians, tree IDs (TG-IND-001), locations...</span>
+            <kbd className="ml-auto text-[10px] font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded text-slate-400">
+              Ctrl K
+            </kbd>
+          </div>
+        </div>
+
+        {/* Right: Authenticated User, Language Toggle & Logout */}
+        <div className="flex items-center gap-2.5">
+          {/* User Profile Pill */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <div className="w-6 h-6 rounded-lg bg-slate-800 text-white flex items-center justify-center font-bold text-[11px]">
+              {user?.name.charAt(0)}
+            </div>
+            <div className="text-left">
+              <span className="font-bold text-slate-900 block leading-tight truncate max-w-[120px]">
+                {user?.name}
+              </span>
+              <span className="text-[10px] text-slate-500 block leading-tight truncate max-w-[120px]">
+                {user?.organization || 'Tamil Nadu'}
+              </span>
+            </div>
+          </div>
+
+          {/* Bilingual Toggle */}
+          <button
+            onClick={toggleLanguage}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-600 text-slate-700 text-xs font-bold transition-all shadow-2xs cursor-pointer"
+            title={language === 'ta' ? 'Switch to English' : 'தமிழுக்கு மாறவும்'}
+          >
+            <Globe className="w-3.5 h-3.5 text-[#006A4E]" />
+            <span className="hidden sm:inline">{language === 'ta' ? 'English' : 'தமிழ்'}</span>
+          </button>
+
+          {/* Sign Out */}
+          <button
+            onClick={onSignOut}
+            className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 transition-all cursor-pointer"
+            title="Sign Out / வெளியேறு"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
+        </div>
+      </header>
+
+      {/* MAIN VIEW AREA */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 sm:px-8">
+        {/* If viewing a specific Tree Passport, render Passport overlay with Back Button */}
+        {viewingPassportTreeId ? (
+          <div className="space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between bg-white p-3.5 px-5 rounded-2xl border border-slate-200 shadow-2xs">
+              <button
+                onClick={() => setViewingPassportTreeId(null)}
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-emerald-800 transition-colors p-1.5 rounded-lg hover:bg-slate-100 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Return to Workspace</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono font-bold text-slate-500">Tree Passport Mode</span>
+                <span className="tn-tree-code text-xs font-mono font-bold px-2 py-0.5 rounded">
+                  {activePassportTree.id}
+                </span>
               </div>
             </div>
 
-            {/* Sign Out */}
-            <button
-              onClick={onSignOut}
-              className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors"
-              title="Sign Out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <TreePassportView
+              tree={activePassportTree}
+              onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+              onOpenVerification={(tree) => setVerificationModalTree(tree)}
+              onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
+            />
           </div>
-        </header>
+        ) : (
+          /* Role-Based Primary Portals over the Single Shared Database */
+          <>
+            {user?.role === 'admin' && (
+              <AdminPortal
+                onOpenTree={(id) => setViewingPassportTreeId(id)}
+                onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
+                onOpenHandoff={(tree) => setHandoffModalTree(tree)}
+                onOpenVerification={(tree) => setVerificationModalTree(tree)}
+                onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
+              />
+            )}
 
-        <div className="max-w-7xl mx-auto px-6 py-6 space-y-6 flex-1 w-full">
-          {/* Demo Script Bar */}
-          <DemoScenarioRunner
-            currentStep={demoStep}
-            onStepChange={handleDemoStepChange}
-          />
+            {user?.role === 'custodian' && (
+              <CustodianPortal
+                onOpenTree={(id) => setViewingPassportTreeId(id)}
+                onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
+              />
+            )}
 
-        {/* Tab: Executive Dashboard */}
-        {activeTab === 'dashboard' && (
-          <DashboardView
-            reliability={reliability}
-            riskItems={riskItems}
-            trees={trees}
-            onOpenTree={(id) => {
-              setSelectedTreeId(id);
-              setActiveTab('passport');
-            }}
-            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
-            onOpenRiskCenter={() => setActiveTab('risk-center')}
-            onOpenAutopsy={() => setActiveTab('autopsy')}
-          />
+            {user?.role === 'verifier' && (
+              <VerifierPortal
+                onOpenTree={(id) => setViewingPassportTreeId(id)}
+              />
+            )}
+          </>
         )}
+      </main>
 
-        {/* Tab: Tree Passport */}
-        {activeTab === 'passport' && (
-          <TreePassportView
-            tree={selectedTree}
-            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
-            onOpenVerification={(tree) => setVerificationModalTree(tree)}
-            onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
-          />
-        )}
+      {/* FOOTER */}
+      <footer className="py-6 border-t border-slate-200/80 text-center text-xs text-slate-500 bg-white/50">
+        <p className="font-semibold text-slate-700">
+          Pasumai Kaval • Department of Environment, Climate Change & Forests • Government of Tamil Nadu
+        </p>
+        <p className="text-[11px] text-slate-400 mt-0.5">
+          One Single Database • Admin Governance • Custodian Responsibility • Peer Verification
+        </p>
+      </footer>
 
-        {/* Tab: Interactive Map */}
-        {activeTab === 'map' && (
-          <InteractiveMap
-            trees={trees}
-            selectedTreeId={selectedTreeId}
-            onSelectTree={(tree) => setSelectedTreeId(tree.id)}
-            onOpenPassport={(treeId) => {
-              setSelectedTreeId(treeId);
-              setActiveTab('passport');
-            }}
-            onOpenVerification={(tree) => setVerificationModalTree(tree)}
-          />
-        )}
+      {/* UNIVERSAL SEARCH & DISCOVER MODAL */}
+      {isSearchModalOpen && (
+        <CustodianDiscoverModal
+          onOpenTree={(id) => {
+            setIsSearchModalOpen(false);
+            setViewingPassportTreeId(id);
+          }}
+          onClose={() => setIsSearchModalOpen(false)}
+          isModal={true}
+        />
+      )}
 
-        {/* Tab: Risk Center */}
-        {activeTab === 'risk-center' && (
-          <RiskCenterView
-            riskItems={riskItems}
-            trees={trees}
-            onOpenTree={(id) => {
-              setSelectedTreeId(id);
-              setActiveTab('passport');
-            }}
-            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
-            onOpenVerification={(tree) => setVerificationModalTree(tree)}
-            onOpenAutopsy={(tree) => setAutopsyModalTree(tree)}
-          />
-        )}
+      {/* REGISTER TREE MODAL */}
+      {isRegisterModalOpen && (
+        <RegisterTreeModal
+          isOpen={isRegisterModalOpen}
+          onClose={() => setIsRegisterModalOpen(false)}
+          onTreeRegistered={handleTreeRegistered}
+          existingCount={trees.length}
+        />
+      )}
 
-        {/* Tab: Failure Insights */}
-        {activeTab === 'autopsy' && (
-          <FailureInsightsView
-            trees={trees}
-            onOpenTree={(id) => {
-              setSelectedTreeId(id);
-              setActiveTab('passport');
-            }}
-            onOpenAutopsyModal={(tree) => setAutopsyModalTree(tree)}
-          />
-        )}
+      {/* CUSTODY HANDOFF MODAL */}
+      {handoffModalTree && (
+        <CustodyHandoffModal
+          tree={handoffModalTree}
+          isOpen={!!handoffModalTree}
+          onClose={() => setHandoffModalTree(null)}
+          onHandoffSuccess={handleHandoffSuccess}
+        />
+      )}
 
-        {/* Tab: Custodian View */}
-        {activeTab === 'custodian-view' && (
-          <CustodianMobileView
-            trees={trees}
-            onOpenTree={(id) => {
-              setSelectedTreeId(id);
-              setActiveTab('passport');
-            }}
-            onOpenHandoff={(tree) => setHandoffModalTree(tree)}
-            onOpenVerification={(tree) => setVerificationModalTree(tree)}
-            onOpenRegisterTree={() => setIsRegisterModalOpen(true)}
-            simulatedCustodian={user?.displayName || "Arun K."}
-          />
-        )}
+      {/* PEER VERIFICATION MODAL */}
+      {verificationModalTree && (
+        <PeerVerificationModal
+          tree={verificationModalTree}
+          isOpen={!!verificationModalTree}
+          onClose={() => setVerificationModalTree(null)}
+          onVerificationSubmitted={handleVerificationSubmitted}
+        />
+      )}
 
-        {/* Tab: Verifier Queue */}
-        {activeTab === 'verification-queue' && (
-          <VerificationQueueView
-            trees={trees}
-            onOpenTree={(id) => {
-              setSelectedTreeId(id);
-              setActiveTab('passport');
-            }}
-            onOpenVerification={(tree) => setVerificationModalTree(tree)}
-          />
-        )}
-
-        {/* Tab: Impact Report */}
-        {activeTab === 'impact-report' && (
-          <ImpactReportView
-            reliability={reliability}
-            trees={trees}
-          />
-        )}
-
-        {/* Footer */}
-        <footer className="mt-16 py-8 border-t border-slate-200/40 text-xs text-slate-400 text-center space-y-2">
-          <p className="font-semibold text-slate-500">
-            TreeGuard — Tree Custody Platform
-          </p>
-          <p>
-            Every tree has a caretaker. Every caretaker has a successor.
-          </p>
-          <p className="text-[10px] text-slate-300 mt-2">
-            Designed for integration with Tamil Nadu environmental programs · © {new Date().getFullYear()}
-          </p>
-        </footer>
-      </div>
-    </main>
-
-    {/* MODALS */}
-    {handoffModalTree && (
-      <CustodyHandoffModal
-        tree={handoffModalTree}
-        isOpen={!!handoffModalTree}
-        onClose={() => setHandoffModalTree(null)}
-        onHandoffSuccess={handleHandoffSuccess}
-      />
-    )}
-
-    {verificationModalTree && (
-      <PeerVerificationModal
-        tree={verificationModalTree}
-        isOpen={!!verificationModalTree}
-        onClose={() => setVerificationModalTree(null)}
-        onVerificationSubmitted={handleVerificationSubmitted}
-      />
-    )}
-
-    {autopsyModalTree && (
-      <FailureAutopsyModal
-        tree={autopsyModalTree}
-        isOpen={!!autopsyModalTree}
-        onClose={() => setAutopsyModalTree(null)}
-        onAutopsySaved={handleAutopsySaved}
-      />
-    )}
-
-    {isRegisterModalOpen && (
-      <RegisterTreeModal
-        isOpen={isRegisterModalOpen}
-        onClose={() => setIsRegisterModalOpen(false)}
-        onTreeRegistered={handleTreeRegistered}
-        existingCount={trees.length}
-      />
-    )}
-  </div>
+      {/* FAILURE AUTOPSY MODAL */}
+      {autopsyModalTree && (
+        <FailureAutopsyModal
+          tree={autopsyModalTree}
+          isOpen={!!autopsyModalTree}
+          onClose={() => setAutopsyModalTree(null)}
+          onAutopsySaved={handleAutopsySaved}
+        />
+      )}
+    </div>
   );
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <LanguageProvider>
-        <ProgramHealthProvider>
-          <AppRouter />
-        </ProgramHealthProvider>
-      </LanguageProvider>
+      <DemoDataProvider>
+        <LanguageProvider>
+          <ProgramHealthProvider>
+            <AppRouter />
+          </ProgramHealthProvider>
+        </LanguageProvider>
+      </DemoDataProvider>
     </AuthProvider>
   );
 }

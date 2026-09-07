@@ -36,6 +36,7 @@ import {
   Leaf,
   Bell
 } from 'lucide-react';
+import { TamilNaduSeal } from './TamilNaduSeal';
 
 
 interface CustodianMobileViewProps {
@@ -217,8 +218,43 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
     setTimeout(() => setLocalToast(null), 3500);
   };
 
-  // 1. CUSTODIAN'S 3 TREES (Section 5 & 6)
+  // 1. CUSTODIAN'S 3+ TREES (Section 5 & 6)
   const [myTreesData, setMyTreesData] = useState<CustodianTreeItem[]>([
+    {
+      id: "TN-PALM-005",
+      speciesName: "Palmyra Palm (State Tree)",
+      botanicalName: "Borassus flabellifer",
+      tamilName: "பனை மரம்",
+      location: "Ramanathapuram Shoreline Belt",
+      campusZone: "Coastal Protection Sector",
+      landmark: "Ramanathapuram Shoreline Zone 1, Milestone 4",
+      coordinates: [9.3639, 78.8395],
+      plantedDate: "14 Apr 2024",
+      lastVerificationDate: "15 Apr 2024",
+      nextCheckpointDate: "14 Oct 2025",
+      nextCheckpointRelative: "in 18 days",
+      healthScore: 98,
+      status: "ALIVE",
+      photoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&auto=format&fit=crop&q=80",
+      referencePhotoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+      originalPlantationPhotoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+      isNative: true,
+      growthStage: "Stage 3 (Heritage Growth)",
+      custodyChain: [
+        { stage: "Planted", description: "Planted by Green Tamil Nadu Initiative", date: "14 Apr 2024", completed: true },
+        { stage: "Assigned", description: "Assigned to Arun K. (Heritage Tree Guardian)", date: "14 Apr 2024", completed: true },
+        { stage: "Peer Audit", description: "Verified by Forest Dept Ranger", date: "15 Apr 2024", completed: true },
+        { stage: "Maintenance", description: "Root collar cleared & soil aerated", date: "15 Feb 2025", completed: true },
+      ],
+      verificationTimeline: [
+        { stage: "Plantation", title: "Sapling Planting", date: "14 Apr 2024", status: "completed", photoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80" },
+        { stage: "1 Year", title: "Deep Root Anchorage", date: "14 Apr 2025", status: "completed", photoUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80" },
+        { stage: "3 Year", title: "Canopy Emergence", date: "14 Oct 2025", status: "current" },
+      ],
+      maintenanceHistory: [
+        { id: "M-PLM-01", date: "15 Feb 2025", type: "Soil Aeration", notes: "Collar clearing and sand stabilization ring built." },
+      ]
+    },
     {
       id: "TG-IND-001",
       speciesName: "Neem Tree",
@@ -841,22 +877,28 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
         <div className="lg:col-span-8 space-y-6">
 
           {/* 1. CUSTODIAN GREETING */}
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="space-y-1.5 max-w-lg">
-              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-                {t('dashboard.greeting', { name: simulatedCustodian })}
-              </h2>
-              <p className="text-sm text-slate-500 max-w-md pt-1">
-                You are currently responsible for {profile.myTreesCount} trees. Your next checkpoint is due in {myTreesData[0]?.nextCheckpointRelative || 'a few days'}.
-              </p>
+          <div className="tn-card-heritage p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-start gap-4 max-w-lg">
+              <TamilNaduSeal size={46} className="mt-1" />
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black tracking-tight text-slate-900">
+                    {t('dashboard.greeting', { name: simulatedCustodian })}
+                  </h2>
+                  <span className="tn-badge-heritage text-[10px]">சான்றளிக்கப்பட்ட பாதுகாவலர்</span>
+                </div>
+                <p className="text-xs text-slate-600 max-w-md pt-0.5">
+                  You are responsible for {myTreesData.length} trees including <strong className="text-[#004D38]">TN-PALM-005</strong> (Palmyra Palm • பனை மரம்).
+                </p>
 
-              <div className="pt-3">
-                <button
-                  onClick={() => setRecordMaintenanceTree(myTreesData[0])}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold shadow-sm transition-colors cursor-pointer"
-                >
-                  <span>{t('heroRecordUpdate')}</span>
-                </button>
+                <div className="pt-2">
+                  <button
+                    onClick={() => setRecordMaintenanceTree(myTreesData[0])}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#006A4E] hover:bg-[#00523C] text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <span>{t('heroRecordUpdate')}</span>
+                  </button>
+                </div>
               </div>
             </div>
 

@@ -197,7 +197,73 @@ export const pilotTree: Tree = {
   ]
 };
 
+export const palmyraTree: Tree = {
+  id: "TN-PALM-005",
+  speciesName: "Palmyra Palm (State Tree)",
+  botanicalName: "Borassus flabellifer",
+  tamilName: "பனை மரம்",
+  plantedAt: "2024-04-14",
+  zone: "Coastal Protection Belt",
+  landmark: "Ramanathapuram Shoreline Zone 1",
+  coordinates: [9.3639, 78.8395],
+  status: "healthy",
+  healthScore: 98,
+  initialHeightCm: 60,
+  currentHeightCm: 145,
+  initialPhotoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+  currentPhotoUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80",
+  currentCustodian: "Murugan S.",
+  currentCustodianUnit: "Coastal Green Guards / Green Tamil Nadu Mission",
+  currentCustodianEmail: "murugan.s@pasumaikaval.tn.gov.in",
+  organization: "Department of Environment & Forests, Government of Tamil Nadu",
+  growthStage: 3,
+  activeAlert: "State Tree of Tamil Nadu. Thriving with deep taproot moisture extraction.",
+  custodyHistory: [
+    {
+      id: "CUST-PLM-01",
+      custodianName: "Murugan S.",
+      custodianRole: "Lead Heritage Tree Custodian",
+      custodianEmail: "murugan.s@pasumaikaval.tn.gov.in",
+      organizationUnit: "Ramanathapuram Forest Range",
+      assignedDate: "2024-04-14",
+      checkpointsCompleted: 3,
+      checkpointsTotal: 4,
+      pledgeSigned: true,
+      certificateId: "CERT-TN-PALM-2024-001",
+      active: true,
+    }
+  ],
+  checkpoints: [
+    {
+      id: "CHK-PLM-1",
+      stage: "planted",
+      scheduledDate: "2024-04-14",
+      submittedDate: "2024-04-14",
+      verifiedDate: "2024-04-15",
+      status: "verified",
+      photoUrl: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=800&auto=format&fit=crop&q=80",
+      custodianName: "Murugan S.",
+      verifierName: "V. Selvam (District Forest Officer)",
+      consistencyScore: "HIGH_CONSISTENCY",
+      locationMatched: true,
+      timestampVerified: true,
+      heightCm: 60,
+      notes: "Palmyra sapling planted as part of coastal green wall initiative.",
+    }
+  ],
+  maintenanceLogs: [
+    {
+      id: "MNT-PLM-01",
+      date: "2025-02-15",
+      custodianName: "Murugan S.",
+      type: "Soil Aeration",
+      notes: "Cleared sand build-up around sapling collar ring.",
+    }
+  ]
+};
+
 export const sampleTrees: Tree[] = [
+  palmyraTree,
   pilotTree,
   {
     id: "TN-COL-00084",

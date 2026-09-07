@@ -89,22 +89,34 @@ export const TreePassportView: React.FC<TreePassportViewProps> = ({
         <div className="lg:col-span-4 xl:col-span-4 flex flex-col gap-6 sticky top-6">
           
           {/* Identity Card */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-900 text-white uppercase tracking-wider">
+          <div className="tn-card-heritage p-6 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span className="tn-tree-code text-xs px-2.5 py-1 font-black">
                 {tree.id}
               </span>
+              {tree.tamilName && (
+                <span className="tn-badge-heritage">
+                  {tree.tamilName}
+                </span>
+              )}
               {tree.isPilotTree && (
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 uppercase tracking-wider">
-                  Pilot Reference
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">
+                  TN Master Reference
                 </span>
               )}
             </div>
             
-            <h2 className="text-2xl font-bold text-slate-900 tracking-tight leading-tight">
-              {tree.speciesName}
-            </h2>
-            <p className="text-sm text-emerald-700 font-serif italic mb-5">
+            <div className="flex flex-col gap-0.5 mb-1">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">
+                {tree.speciesName}
+              </h2>
+              {tree.tamilName && (
+                <span className="text-base font-bold text-[#006A4E]">
+                  {tree.tamilName}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-emerald-800 font-serif italic mb-5">
               {tree.botanicalName}
             </p>
 

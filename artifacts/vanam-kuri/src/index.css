@@ -38,79 +38,86 @@
 }
 
 :root {
-  /* Professional Green Civic-Tech Palette */
-  --background: 140 15% 97%;
-  --foreground: 150 20% 12%;
-  --border: 145 12% 88%;
-  --input: 145 12% 88%;
-  --ring: 152 55% 35%;
-  
-  --card: 0 0% 100%;
-  --card-foreground: 150 20% 12%;
-  --card-border: 145 12% 90%;
+  /* ═══ Tamil Nadu Green Palette ═══ */
+  --background: 140 12% 97%;
+  --foreground: 160 25% 10%;
+  --border: 150 8% 89%;
+  --input: 150 8% 89%;
+  --ring: 160 100% 22%;
 
-  /* Deep Forest Green Primary */
-  --primary: 152 55% 30%;
+  --card: 0 0% 100%;
+  --card-foreground: 160 25% 10%;
+  --card-border: 150 8% 90%;
+
+  /* Tamil Nadu Deep Green */
+  --primary: 160 100% 22%;
   --primary-foreground: 0 0% 100%;
 
-  /* Light Sage Secondary */
-  --secondary: 145 25% 95%;
-  --secondary-foreground: 152 50% 20%;
+  /* Light Sage */
+  --secondary: 145 20% 96%;
+  --secondary-foreground: 160 80% 18%;
 
-  --muted: 145 15% 96%;
-  --muted-foreground: 150 10% 46%;
+  --muted: 140 10% 96%;
+  --muted-foreground: 150 8% 46%;
 
-  /* Amber for status/alerts */
-  --accent: 38 92% 50%;
+  /* Saffron Gold for alerts & accents */
+  --accent: 30 100% 60%;
   --accent-foreground: 30 90% 15%;
 
   /* Red for failures */
-  --destructive: 0 72% 55%;
+  --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 100%;
 
-  --sidebar: 152 45% 10%;
-  --sidebar-foreground: 145 20% 95%;
-  --sidebar-border: 152 30% 16%;
-  --sidebar-primary: 152 55% 38%;
+  /* Sidebar — deep forest */
+  --sidebar: 160 60% 8%;
+  --sidebar-foreground: 145 15% 95%;
+  --sidebar-border: 160 40% 14%;
+  --sidebar-primary: 160 80% 30%;
   --sidebar-primary-foreground: 0 0% 100%;
 
   --app-font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --app-font-mono: 'DM Mono', monospace;
   --app-font-tamil: 'Noto Sans Tamil', 'Plus Jakarta Sans', sans-serif;
   --radius: 0.75rem;
+
+  /* Named TN colours for direct use */
+  --tn-green: #006A4E;
+  --tn-green-light: #2E8B57;
+  --tn-gold: #FF9933;
+  --tn-bg: #F5F9F5;
 }
 
 .dark {
-  --background: 150 20% 6%;
+  --background: 160 25% 6%;
   --foreground: 145 15% 95%;
-  --border: 150 18% 16%;
-  --input: 150 18% 16%;
-  --ring: 152 55% 42%;
-  
-  --card: 150 20% 9%;
+  --border: 160 18% 14%;
+  --input: 160 18% 14%;
+  --ring: 160 80% 35%;
+
+  --card: 160 22% 9%;
   --card-foreground: 145 15% 95%;
-  --card-border: 150 18% 15%;
+  --card-border: 160 18% 15%;
 
-  --primary: 152 55% 42%;
-  --primary-foreground: 150 20% 6%;
+  --primary: 160 80% 35%;
+  --primary-foreground: 160 25% 6%;
 
-  --secondary: 150 18% 14%;
+  --secondary: 160 18% 13%;
   --secondary-foreground: 145 30% 88%;
 
-  --muted: 150 18% 12%;
-  --muted-foreground: 150 12% 60%;
+  --muted: 160 18% 11%;
+  --muted-foreground: 150 10% 58%;
 
-  --accent: 38 92% 55%;
+  --accent: 30 100% 55%;
   --accent-foreground: 30 90% 15%;
 
-  --destructive: 0 72% 60%;
+  --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
 
-  --sidebar: 150 20% 7%;
+  --sidebar: 160 25% 6%;
   --sidebar-foreground: 145 15% 93%;
-  --sidebar-border: 150 18% 14%;
-  --sidebar-primary: 152 55% 42%;
-  --sidebar-primary-foreground: 150 20% 6%;
+  --sidebar-border: 160 18% 13%;
+  --sidebar-primary: 160 80% 35%;
+  --sidebar-primary-foreground: 160 25% 6%;
 }
 
 @layer base {
@@ -121,127 +128,106 @@
     scroll-behavior: smooth;
   }
   body {
-    @apply font-sans antialiased bg-[#F8FAF8] text-foreground selection:bg-emerald-100 selection:text-emerald-900;
+    @apply font-sans antialiased text-foreground selection:bg-emerald-100 selection:text-emerald-900;
+    background-color: var(--tn-bg);
   }
 }
 
 /* ══════════════════════════════════════════════════════
-   BACKGROUNDS & CARDS
+   TAMIL NADU GOVERNMENT DESIGN SYSTEM
    ══════════════════════════════════════════════════════ */
 
-/* Main content area — very subtle warm green tint */
+/* Main content area — clean sage tint */
 .nature-bg {
-  background-color: #F8FAF8;
-  background-image: 
-    radial-gradient(ellipse at 0% 0%, rgba(5, 150, 105, 0.02) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(4, 120, 87, 0.02) 0%, transparent 50%);
+  background-color: var(--tn-bg);
 }
 
-/* Subtle leaf grid */
-.leaf-grid-bg {
-  background-image: 
-    radial-gradient(at 8% 15%, rgba(5, 150, 105, 0.03) 0px, transparent 50%),
-    radial-gradient(at 92% 85%, rgba(4, 120, 87, 0.03) 0px, transparent 50%);
-}
-
-/* Clean glass card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+/* Clean card — no glassmorphism */
+.tn-card {
+  background: #FFFFFF;
+  border: 1px solid #E8EDE8;
+  border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-.dark .glass-card {
-  background: rgba(6, 78, 59, 0.15);
-  border: 1px solid rgba(52, 211, 153, 0.1);
+.tn-card-hover {
+  background: #FFFFFF;
+  border: 1px solid #E8EDE8;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+.tn-card-hover:hover {
+  border-color: var(--tn-green-light);
+  box-shadow: 0 4px 12px rgba(0, 106, 78, 0.08);
 }
 
-/* Greenery gradient card — subtle */
+/* Legacy aliases for existing code */
+.glass-card {
+  background: #FFFFFF;
+  border: 1px solid #E8EDE8;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
 .greenery-card {
-  background: linear-gradient(135deg, rgba(240, 253, 244, 0.7) 0%, rgba(255, 255, 255, 0.98) 50%, rgba(236, 253, 245, 0.7) 100%);
-  border: 1px solid rgba(5, 150, 105, 0.08);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border: 1px solid #E8EDE8;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-/* Leaf pattern overlay — very subtle */
-.leaf-pattern-overlay {
-  position: relative;
-}
-.leaf-pattern-overlay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0.02;
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 C20 15, 10 25, 15 35 C20 45, 30 40, 30 55 C30 40, 40 45, 45 35 C50 25, 40 15, 30 5Z' fill='%23059669' /%3E%3C/svg%3E");
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Sidebar — professional dark green */
+/* Sidebar — deep Tamil Nadu green */
 .sidebar-forest {
-  background: #0C1F17;
+  background: linear-gradient(180deg, #0A3D2E 0%, #072E22 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Government Report Header */
+.gov-report-header {
+  background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 50%, #F0FDF4 100%);
+  border-bottom: 2px solid var(--tn-green);
+}
+
 /* ══════════════════════════════════════════════════════
-   ANIMATIONS — Restrained and Professional
+   ANIMATIONS — Subtle & Professional
    ══════════════════════════════════════════════════════ */
 
-/* Rise Toast Animation */
 @keyframes rise {
   from { opacity: 0; transform: translate(-50%, -10px); }
   to { opacity: 1; transform: translate(-50%, 0); }
 }
-
 .animate-rise {
   animation: rise 0.3s ease-out forwards;
 }
 
-/* Fade In from below */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-fade-in {
-  animation: fadeInUp 0.35s ease-out forwards;
+  animation: fadeInUp 0.3s ease-out forwards;
 }
 
-/* Subtle pulse for status indicators */
 @keyframes pulseSubtle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
 }
-
 .animate-pulse-subtle {
   animation: pulseSubtle 2s ease-in-out infinite;
 }
 
-/* Gentle canopy glow — very subtle */
 .animate-canopy-glow {
-  /* Removed excessive glow — just a subtle border highlight */
   transition: box-shadow 0.3s ease;
 }
 .animate-canopy-glow:hover {
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.1);
+  box-shadow: 0 0 0 1px rgba(0, 106, 78, 0.15);
 }
 
-/* Removed tn-watermark and vine borders as per modern aesthetic guidelines */
+/* ══════════════════════════════════════════════════════
+   TYPOGRAPHY
+   ══════════════════════════════════════════════════════ */
 
-/* Government Report Header */
-.gov-report-header {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 50%, #f0fdf4 100%);
-  border-bottom: 2px solid;
-  border-image: linear-gradient(90deg, #064E3B, #059669, #10B981, #059669, #064E3B) 1;
-}
-
-/* Tamil Typography */
 .font-tamil {
   font-family: 'Noto Sans Tamil', 'Plus Jakarta Sans', sans-serif;
 }
@@ -252,7 +238,7 @@ html[lang="ta"] body {
 }
 
 /* ══════════════════════════════════════════════════════
-   CUSTOM SCROLLBAR
+   SCROLLBAR
    ══════════════════════════════════════════════════════ */
 
 ::-webkit-scrollbar {
@@ -263,11 +249,11 @@ html[lang="ta"] body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: rgba(0, 106, 78, 0.15);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 106, 78, 0.25);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -278,4 +264,64 @@ html[lang="ta"] body {
   .no-print {
     display: none !important;
   }
+}
+
+/* ══════════════════════════════════════════════════════
+   TAMIL NADU HERITAGE & GOVERNMENT STYLING EFFECTS
+   ══════════════════════════════════════════════════════ */
+
+.tn-border-gold {
+  border-top: 3px solid #D97706;
+}
+
+.tn-card-heritage {
+  background: #FFFFFF;
+  border: 1px solid #E2E8E0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgba(0, 77, 56, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.tn-card-heritage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #006A4E 0%, #2E8B57 50%, #D97706 100%);
+}
+
+.tn-badge-heritage {
+  background: #FFF9ED;
+  border: 1px solid #FCD34D;
+  color: #92400E;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tn-tree-code {
+  font-family: var(--app-font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: #E8F5E9;
+  color: #004D38;
+  border: 1px solid #A3E635;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+/* Subtle Kolam / Sacred Geometry Pattern */
+.tn-kolam-bg {
+  background-image: radial-gradient(#006A4E 0.75px, transparent 0.75px), radial-gradient(#D97706 0.75px, #FFFFFF 0.75px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+  opacity: 0.98;
 }

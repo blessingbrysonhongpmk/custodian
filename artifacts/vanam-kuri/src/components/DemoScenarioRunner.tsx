@@ -1,15 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import { 
-  Play, 
-  RotateCcw, 
-  CheckCircle2, 
-  ChevronRight, 
-  ArrowRight, 
-  Sparkles, 
   ShieldCheck, 
-  AlertTriangle,
-  Award,
-  X
+  ChevronRight, 
+  ChevronLeft,
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 interface DemoScenarioRunnerProps {
@@ -21,77 +17,91 @@ export const DemoScenarioRunner: React.FC<DemoScenarioRunnerProps> = ({
   onStepChange,
   currentStep,
 }) => {
-  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const { language } = useLanguage();
 
-  const demoSteps = [
+  const operationalSteps = [
     {
       num: 1,
-      title: "1. 500 Trees Planted — Healthy System",
-      subtitle: "Dashboard shows active custody across campus. Every tree has a caretaker.",
-      badge: "Overview",
+      title: language === 'ta' ? '1. 500 மரங்கள் மேலாண்மை — நேரடி கண்காணிப்பு' : '1. 500 Native Trees Registered — Live Grid Overview',
+      subtitle: language === 'ta' ? 'அனைத்து மரங்களுக்கும் செயலில் உள்ள பாதுகாவலர் உறுதி செய்யப்பட்டுள்ளது.' : 'Executive dashboard confirms 100% active custodian assignment across the sector.',
+      badge: language === 'ta' ? 'கண்காணிப்பு' : 'Active Grid',
     },
     {
       num: 2,
-      title: "2. Student Graduating — Custody Expiring",
-      subtitle: "Arun Kumar's custody of TG-IND-001 expires in 14 days.",
-      badge: "Risk Detected",
+      title: language === 'ta' ? '2. பாதுகாவலர் மாற்றம் தேவை — 14 நாட்கள் முன்கூட்டிய எச்சரிக்கை' : '2. Custodian Transition Due — 14-Day Advance Alert',
+      subtitle: language === 'ta' ? 'அருண் குமார் கல்வி நிறைவு செய்கிறார். TG-IND-001 மரம் பராமரிப்பு மாற்றம் தேவை.' : 'Arun Kumar graduating. Early warning flags TG-IND-001 custody expiration in 14 days.',
+      badge: language === 'ta' ? 'எச்சரிக்கை' : 'Advance Alert',
     },
     {
       num: 3,
-      title: "3. Successor Matching Activated",
-      subtitle: "TreeGuard identifies nearby candidates and recommends Priya Nair (94% match).",
-      badge: "AI Matching",
+      title: language === 'ta' ? '3. அடுத்த பாதுகாவலர் பரிந்துரை — தகுதி சரிபார்ப்பு' : '3. Successor Matching — Pre-Qualified Guardian Verification',
+      subtitle: language === 'ta' ? 'அருகிலுள்ள தகுதியான பாதுகாவலராக பிரியா நாயர் (94% பொருத்தம்) பரிந்துரை.' : 'Automated proximity matching recommends Priya Nair (94% readiness match).',
+      badge: language === 'ta' ? 'பொருத்தம்' : 'Candidate Match',
     },
     {
       num: 4,
-      title: "4. Priya Accepts Responsibility",
-      subtitle: "Custody pledge signed. Digital handoff ceremony completed.",
-      badge: "Handoff",
+      title: language === 'ta' ? '4. புதிய பாதுகாவலர் ஏற்பு — டிஜிட்டல் உறுதிமொழி' : '4. Custody Transfer Executed — Digital Pledge Recorded',
+      subtitle: language === 'ta' ? 'பிரியா நாயர் பொறுப்பை ஏற்றுக்கொண்டார். இடைவெளியற்ற மரப் பாதுகாப்பு உறுதி.' : 'Priya signs caretaker pledge. Tamper-evident custody handoff completed without gaps.',
+      badge: language === 'ta' ? 'மாற்றம் நிறைவு' : 'Handoff Certified',
     },
     {
       num: 5,
-      title: "5. Failure Autopsy — Learning from Loss",
-      subtitle: "Zone B tree death analyzed. Water shortage identified as root cause.",
-      badge: "Root-Cause",
+      title: language === 'ta' ? '5. மர இழப்பு ஆய்வு — அறிவியல் மூலக் காரண தணிக்கை' : '5. Loss Investigation Audit — Scientific Root-Cause Analysis',
+      subtitle: language === 'ta' ? 'மண்டல மர இழப்புக்கான காரணங்கள் ஆய்வு செய்யப்பட்டு அரசு கொள்கை குறிப்பு பதிவு.' : 'Drought stress diagnosed. Automated irrigation policy alert dispatched to field teams.',
+      badge: language === 'ta' ? 'தணிக்கை' : 'Root Cause Audit',
     },
     {
       num: 6,
-      title: "6. Custody Gap Prevented — Impact Report",
-      subtitle: "\"No tree left behind.\" Executive dashboard confirms continuity.",
-      badge: "Final Outcome",
+      title: language === 'ta' ? '6. மாநில தணிக்கை அறிக்கை — 100% தொடர் பராமரிப்பு' : '6. State Impact Certification — 94.2% Verified Survival',
+      subtitle: language === 'ta' ? 'அரசு தணிக்கை குழுவிற்கான முழுமையான சுற்றுச்சூழல் அறிக்கை தயார்.' : 'Official environmental compliance report ready for departmental submission.',
+      badge: language === 'ta' ? 'அறிக்கை' : 'Audit Dossier',
     }
   ];
 
   return (
-    <div className="w-full bg-slate-50 border border-slate-200 py-2.5 px-4 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-sm mb-6">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <span className="font-mono font-bold uppercase tracking-wider text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-          Demo Scenario
-        </span>
-        <span className="font-semibold text-slate-900">
-          {demoSteps[currentStep].title}
-        </span>
-        <span className="hidden sm:inline text-slate-500">
-          — {demoSteps[currentStep].subtitle}
-        </span>
+    <div className="w-full bg-white border border-slate-200/90 py-3 px-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs shadow-2xs mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 min-w-0">
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 border border-emerald-200/80 text-[#006A4E] font-bold uppercase tracking-wider text-[10px] shrink-0">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>{language === 'ta' ? 'செயல்முறை ஓட்டம்' : 'Operational Flow'}</span>
+        </div>
+        <div className="min-w-0">
+          <span className="font-bold text-slate-900 block sm:inline truncate">
+            {operationalSteps[currentStep].title}
+          </span>
+          <span className="hidden lg:inline text-slate-500 text-[11px] ml-2">
+            — {operationalSteps[currentStep].subtitle}
+          </span>
+        </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="font-mono text-[10px] text-slate-400 font-bold uppercase mr-2">
-          Step {currentStep + 1} / {demoSteps.length}
+      <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+        <span className="text-[11px] text-slate-500 font-semibold mr-1">
+          {language === 'ta' ? `படி ${currentStep + 1} / ${operationalSteps.length}` : `Step ${currentStep + 1} of ${operationalSteps.length}`}
         </span>
         <button
           onClick={() => onStepChange(Math.max(0, currentStep - 1))}
           disabled={currentStep === 0}
-          className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-50 transition-colors"
+          className="p-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors text-xs font-semibold cursor-pointer"
+          title="Previous Step"
         >
-          Previous
+          <span className="hidden sm:inline">{language === 'ta' ? 'முந்தையது' : 'Previous'}</span>
+          <ChevronLeft className="w-3.5 h-3.5 sm:hidden" />
         </button>
         <button
-          onClick={() => onStepChange((currentStep + 1) % demoSteps.length)}
-          className="px-2 py-1 rounded bg-slate-900 border border-slate-900 text-white hover:bg-slate-800 transition-colors"
+          onClick={() => onStepChange((currentStep + 1) % operationalSteps.length)}
+          className="p-1.5 sm:px-3 sm:py-1 rounded-lg bg-[#006A4E] hover:bg-[#00523C] text-white transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer shadow-2xs"
         >
-          {currentStep === demoSteps.length - 1 ? 'Restart' : 'Next Step'}
+          <span>
+            {currentStep === operationalSteps.length - 1 
+              ? (language === 'ta' ? 'மீண்டும் தொடங்கு' : 'Restart Flow') 
+              : (language === 'ta' ? 'அடுத்த படி' : 'Next Step')}
+          </span>
+          {currentStep === operationalSteps.length - 1 ? (
+            <RotateCcw className="w-3.5 h-3.5" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5" />
+          )}
         </button>
       </div>
     </div>

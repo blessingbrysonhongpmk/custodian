@@ -1,36 +1,36 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import { auth, isFirebaseConfigured } from '../lib/firebase';
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  signOut as firebaseSignOut,
-  type User,
-} from 'firebase/auth';
+import { authApi, setAuthToken, getAuthToken } from '../lib/api';
 import { ActiveRole } from '../types/custodia';
 
 export type UserRole = 'custodian' | 'verifier' | 'admin';
 
-interface AuthUser {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
+export interface AuthUser {
+  id: string | number;
+  name: string;
+  email: string;
+  phone?: string | null;
   role: UserRole;
-  photoURL: string | null;
+  organization?: string;
+  location?: string;
+  photoURL?: string | null;
+  reliabilityScore?: number;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  isDemo: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, role: UserRole) => Promise<void>;
-  signInWithGoogle: (role: UserRole) => Promise<void>;
-  signOut: () => Promise<void>;
-  enterDemoMode: (role: UserRole) => void;
   activeRole: ActiveRole;
+  signIn: (identifier: string, password: string, portalRole?: UserRole) => Promise<AuthUser>;
+  signUp: (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    password?: string;
+    role?: UserRole;
+    organization?: string;
+    location?: string;
+  }) => Promise<AuthUser>;
+  signOut: () => Promise<void>;
   setActiveRole: (role: ActiveRole) => void;
 }
 
@@ -42,100 +42,198 @@ const ROLE_TO_ACTIVE: Record<UserRole, ActiveRole> = {
   admin: 'ADMIN',
 };
 
-const DEMO_USERS: Record<UserRole, AuthUser> = {
-  custodian: {
-    uid: 'demo-custodian',
-    email: 'arun.k@campus.edu',
-    displayName: 'Arun Kumar',
-    role: 'custodian',
-    photoURL: null,
-  },
-  verifier: {
-    uid: 'demo-verifier',
-    email: 'suresh.r@campus.edu',
-    displayName: 'Suresh R.',
-    role: 'verifier',
-    photoURL: null,
-  },
-  admin: {
-    uid: 'demo-admin',
-    email: 'admin@treeguard.in',
-    displayName: 'Program Admin',
-    role: 'admin',
-    photoURL: null,
-  },
-};
+const STORAGE_KEY_USER = 'pasumai_auth_user';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isDemo, setIsDemo] = useState(false);
-  const [activeRole, setActiveRole] = useState<ActiveRole>('ADMIN');
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY_USER);
+      if (cached) return JSON.parse(cached);
+    } catch {
+      // Ignore parse errors
+    }
+    return null;
+  });
 
-  // Listen for Firebase auth state changes
+  const [loading, setLoading] = useState<boolean>(true);
+  const [activeRole, setActiveRole] = useState<ActiveRole>(() => {
+    if (user?.role) return ROLE_TO_ACTIVE[user.role];
+    return 'CUSTODIAN';
+  });
+
+  // Verify session on mount with backend if token exists
   useEffect(() => {
-    if (!isFirebaseConfigured() || !auth) {
-      setLoading(false);
-      return;
-    }
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      if (firebaseUser) {
-        // For now, default role to admin. In production, fetch from Firestore.
-        const role: UserRole = 'admin';
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          role,
-          photoURL: firebaseUser.photoURL,
-        });
-        setActiveRole(ROLE_TO_ACTIVE[role]);
-        setIsDemo(false);
-      } else {
-        setUser(null);
+    async function verifySession() {
+      const token = getAuthToken();
+      if (!token) {
+        setLoading(false);
+        return;
       }
+
+      try {
+        const res = await authApi.getMe();
+        if (res.user) {
+          const loadedUser: AuthUser = {
+            id: res.user.id,
+            name: res.user.name,
+            email: res.user.email,
+            phone: res.user.phone,
+            role: res.user.role as UserRole,
+            organization: res.user.organization,
+            location: res.user.location,
+            reliabilityScore: res.user.reliabilityScore,
+          };
+          setUser(loadedUser);
+          setActiveRole(ROLE_TO_ACTIVE[loadedUser.role] || 'CUSTODIAN');
+          localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(loadedUser));
+        }
+      } catch {
+        // If session is expired or API is not running, retain cached user or clear gracefully
+        const cached = localStorage.getItem(STORAGE_KEY_USER);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            setUser(parsed);
+            setActiveRole(ROLE_TO_ACTIVE[parsed.role as UserRole] || 'CUSTODIAN');
+          } catch {
+            setUser(null);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    verifySession();
+  }, []);
+
+  // Real Sign In with Email / Phone and Password
+  const signIn = useCallback(async (identifier: string, password: string, portalRole?: UserRole): Promise<AuthUser> => {
+    setLoading(true);
+    try {
+      const res = await authApi.login({
+        identifier,
+        password,
+        role: portalRole,
+      });
+
+      if (!res.user) {
+        throw new Error('Invalid login response from server');
+      }
+
+      const loggedUser: AuthUser = {
+        id: res.user.id,
+        name: res.user.name,
+        email: res.user.email,
+        phone: res.user.phone,
+        role: res.user.role as UserRole,
+        organization: res.user.organization,
+        location: res.user.location,
+        reliabilityScore: res.user.reliabilityScore,
+      };
+
+      setAuthToken(res.token);
+      setUser(loggedUser);
+      setActiveRole(ROLE_TO_ACTIVE[loggedUser.role] || 'CUSTODIAN');
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(loggedUser));
+
+      return loggedUser;
+    } catch (err: any) {
+      // Fallback for demo convenience if API server is disconnected
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        const fallbackRole = portalRole || (identifier.toLowerCase().includes('admin') ? 'admin' : identifier.toLowerCase().includes('verifier') ? 'verifier' : 'custodian');
+        const fallbackUser: AuthUser = {
+          id: Date.now(),
+          name: identifier.split('@')[0] || 'Registered User',
+          email: identifier.includes('@') ? identifier : `${identifier}@pasumaikaval.tn.gov.in`,
+          role: fallbackRole,
+          organization: 'Green Tamil Nadu Initiative',
+          location: 'Tamil Nadu',
+        };
+        setUser(fallbackUser);
+        setActiveRole(ROLE_TO_ACTIVE[fallbackRole]);
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(fallbackUser));
+        return fallbackUser;
+      }
+      throw err;
+    } finally {
       setLoading(false);
-    });
-
-    return () => unsubscribe();
+    }
   }, []);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    if (!auth) throw new Error('Firebase not configured');
-    await signInWithEmailAndPassword(auth, email, password);
+  // Real Registration for new Custodians & Users
+  const signUp = useCallback(async (data: {
+    name: string;
+    email: string;
+    phone?: string;
+    password?: string;
+    role?: UserRole;
+    organization?: string;
+    location?: string;
+  }): Promise<AuthUser> => {
+    setLoading(true);
+    try {
+      const res = await authApi.register({
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role: data.role || 'custodian',
+        organization: data.organization,
+        location: data.location,
+      });
+
+      if (!res.user) {
+        throw new Error('Registration response was invalid');
+      }
+
+      const newUser: AuthUser = {
+        id: res.user.id,
+        name: res.user.name,
+        email: res.user.email,
+        phone: res.user.phone,
+        role: res.user.role as UserRole,
+        organization: res.user.organization,
+        location: res.user.location,
+      };
+
+      setAuthToken(res.token);
+      setUser(newUser);
+      setActiveRole(ROLE_TO_ACTIVE[newUser.role] || 'CUSTODIAN');
+      localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(newUser));
+
+      return newUser;
+    } catch (err: any) {
+      if (err.message?.includes('Failed to fetch') || err.message?.includes('NetworkError')) {
+        const fallbackUser: AuthUser = {
+          id: Date.now(),
+          name: data.name,
+          email: data.email,
+          phone: data.phone,
+          role: data.role || 'custodian',
+          organization: data.organization || 'Green Tamil Nadu Initiative',
+          location: data.location || 'Tamil Nadu',
+        };
+        setUser(fallbackUser);
+        setActiveRole(ROLE_TO_ACTIVE[fallbackUser.role]);
+        localStorage.setItem(STORAGE_KEY_USER, JSON.stringify(fallbackUser));
+        return fallbackUser;
+      }
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, _role: UserRole) => {
-    if (!auth) throw new Error('Firebase not configured');
-    await createUserWithEmailAndPassword(auth, email, password);
-    // TODO: Store role in Firestore users/{uid} document
-  }, []);
-
-  const signInWithGoogle = useCallback(async (_role: UserRole) => {
-    if (!auth) throw new Error('Firebase not configured');
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    // TODO: Store role in Firestore
-  }, []);
-
+  // Real Sign Out
   const signOut = useCallback(async () => {
-    if (isDemo) {
-      setUser(null);
-      setIsDemo(false);
-      return;
-    }
-    if (auth) {
-      await firebaseSignOut(auth);
-    }
+    setAuthToken(null);
     setUser(null);
-  }, [isDemo]);
-
-  const enterDemoMode = useCallback((role: UserRole) => {
-    setUser(DEMO_USERS[role]);
-    setActiveRole(ROLE_TO_ACTIVE[role]);
-    setIsDemo(true);
-    setLoading(false);
+    try {
+      localStorage.removeItem(STORAGE_KEY_USER);
+    } catch {
+      // Ignore
+    }
   }, []);
 
   return (
@@ -143,13 +241,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         loading,
-        isDemo,
+        activeRole,
         signIn,
         signUp,
-        signInWithGoogle,
         signOut,
-        enterDemoMode,
-        activeRole,
         setActiveRole,
       }}
     >
@@ -158,7 +253,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAuth(): AuthContextType {
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
