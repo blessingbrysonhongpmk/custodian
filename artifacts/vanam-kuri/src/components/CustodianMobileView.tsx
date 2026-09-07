@@ -37,7 +37,7 @@ import {
   Bell
 } from 'lucide-react';
 import { TamilNaduSeal } from './TamilNaduSeal';
-import { TREE_IMAGES, getTreeImages } from '../data/treeImages';
+import { TREE_IMAGES, PLANTATION_EVIDENCE_IMAGES, getTreeImages } from '../data/treeImages';
 
 
 interface CustodianMobileViewProps {
@@ -271,9 +271,9 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
       nextCheckpointRelative: "in 6 days",
       healthScore: 92,
       status: "ALIVE",
-      photoUrl: TREE_IMAGES.neem.mature,
-      referencePhotoUrl: TREE_IMAGES.neem.mature,
-      originalPlantationPhotoUrl: TREE_IMAGES.neem.sapling,
+      photoUrl: PLANTATION_EVIDENCE_IMAGES.verifiedCanopy,
+      referencePhotoUrl: PLANTATION_EVIDENCE_IMAGES.wateringCheckpoint,
+      originalPlantationPhotoUrl: PLANTATION_EVIDENCE_IMAGES.plantingBaseline,
       isNative: true,
       growthStage: "Stage 3 (6M-1Y)",
       custodyChain: [
@@ -285,9 +285,9 @@ export const CustodianMobileView: React.FC<CustodianMobileViewProps> = ({
         { stage: "Graduation Handover", description: "Scheduled transition to Junior Custodian", date: "Oct 2025", completed: false },
       ],
       verificationTimeline: [
-        { stage: "Plantation", title: "Sapling Planting", date: "12 Jan 2025", status: "completed", photoUrl: TREE_IMAGES.neem.sapling },
-        { stage: "1 Month", title: "Root Settlement", date: "12 Feb 2025", status: "completed", photoUrl: TREE_IMAGES.neem.sapling },
-        { stage: "6 Month", title: "Canopy & Stem Audit", date: "12 Aug 2025", status: "completed", photoUrl: TREE_IMAGES.neem.mature },
+        { stage: "Plantation", title: "Sapling Planting", date: "12 Jan 2025", status: "completed", photoUrl: PLANTATION_EVIDENCE_IMAGES.plantingBaseline },
+        { stage: "1 Month", title: "Root Settlement", date: "12 Feb 2025", status: "completed", photoUrl: PLANTATION_EVIDENCE_IMAGES.wateringCheckpoint },
+        { stage: "6 Month", title: "Canopy & Stem Audit", date: "12 Aug 2025", status: "completed", photoUrl: PLANTATION_EVIDENCE_IMAGES.verifiedCanopy },
         { stage: "1 Year", title: "Canopy Milestone", date: "10 Sep 2025", status: "current" },
         { stage: "3 Year", title: "Permanent Forest Cover", date: "12 Jan 2028", status: "upcoming" },
       ],

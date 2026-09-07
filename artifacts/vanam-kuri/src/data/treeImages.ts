@@ -7,13 +7,24 @@
  *   - `mature`:  Grown/established tree (used for currentPhotoUrl, checkpoint evidence)
  * 
  * These replace generic Unsplash forest photos with actual species-correct imagery.
+/**
+ * Real Custodian Plantation Evidence Photos
+ * Authentic Tamil Nadu campus tree planting moment & growth stages:
+ * - `plantingBaseline`: Student volunteer actively planting sapling with bare hands in soil pit
+ * - `wateringCheckpoint`: Custodian watering tree with bamboo guard while peer auditor logs metrics
+ * - `verifiedCanopy`: Thriving 1-year tree with custodian presenting digital certificate
  */
+export const PLANTATION_EVIDENCE_IMAGES = {
+  plantingBaseline: '/images/plantation/planting_baseline.jpg',
+  wateringCheckpoint: '/images/plantation/watering_checkpoint.jpg',
+  verifiedCanopy: '/images/plantation/canopy_verified.jpg',
+} as const;
 
 export const TREE_IMAGES = {
   // Neem (Azadirachta indica) — வேம்பு
   neem: {
-    sapling: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Neem_tree_sapling.jpg/640px-Neem_tree_sapling.jpg',
-    mature: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Neem_%28Azadirachta_indica%29_in_Hyderabad_W_IMG_6976.jpg/640px-Neem_%28Azadirachta_indica%29_in_Hyderabad_W_IMG_6976.jpg',
+    sapling: PLANTATION_EVIDENCE_IMAGES.plantingBaseline,
+    mature: PLANTATION_EVIDENCE_IMAGES.verifiedCanopy,
   },
 
   // Palmyra Palm (Borassus flabellifer) — பனை மரம்

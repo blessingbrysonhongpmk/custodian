@@ -4,7 +4,7 @@ import {
   OrganizationReliability, 
   FailureAutopsy 
 } from '../types/custodia';
-import { TREE_IMAGES } from './treeImages';
+import { TREE_IMAGES, PLANTATION_EVIDENCE_IMAGES } from './treeImages';
 
 export const initialReliability: OrganizationReliability = {
   projectName: "Green Campus Initiative 2024–2027 (Pilot Phase)",
@@ -44,8 +44,8 @@ export const pilotTree: Tree = {
   healthScore: 95,
   initialHeightCm: 45,
   currentHeightCm: 118,
-  initialPhotoUrl: TREE_IMAGES.neem.sapling,
-  currentPhotoUrl: TREE_IMAGES.neem.mature,
+  initialPhotoUrl: PLANTATION_EVIDENCE_IMAGES.plantingBaseline,
+  currentPhotoUrl: PLANTATION_EVIDENCE_IMAGES.verifiedCanopy,
   currentCustodian: "Arun Kumar",
   currentCustodianUnit: "Green Campus Initiative",
   currentCustodianEmail: "arun.k22@campus.edu",
@@ -78,7 +78,7 @@ export const pilotTree: Tree = {
       submittedDate: "2024-08-12",
       verifiedDate: "2024-08-12",
       status: "verified",
-      photoUrl: TREE_IMAGES.neem.sapling,
+      photoUrl: PLANTATION_EVIDENCE_IMAGES.plantingBaseline,
       custodianName: "Arun K.",
       verifierName: "Dr. Malathi V. (Campus Sustainability Officer)",
       verifierRole: "Sustainability Officer",
@@ -101,8 +101,8 @@ export const pilotTree: Tree = {
       submittedDate: "2024-09-10",
       verifiedDate: "2024-09-12",
       status: "verified",
-      photoUrl: TREE_IMAGES.neem.mature,
-      referencePhotoUrl: TREE_IMAGES.neem.sapling,
+      photoUrl: PLANTATION_EVIDENCE_IMAGES.wateringCheckpoint,
+      referencePhotoUrl: PLANTATION_EVIDENCE_IMAGES.plantingBaseline,
       custodianName: "Arun K.",
       verifierName: "Suresh R. (Peer Verifier #14)",
       verifierRole: "Peer Verifier",
@@ -125,8 +125,8 @@ export const pilotTree: Tree = {
       submittedDate: "2025-02-11",
       verifiedDate: "2025-02-12",
       status: "verified",
-      photoUrl: TREE_IMAGES.neem.mature,
-      referencePhotoUrl: TREE_IMAGES.neem.mature,
+      photoUrl: PLANTATION_EVIDENCE_IMAGES.verifiedCanopy,
+      referencePhotoUrl: PLANTATION_EVIDENCE_IMAGES.wateringCheckpoint,
       custodianName: "Arun K.",
       verifierName: "Divya M. (Peer Verifier #08)",
       verifierRole: "Peer Verifier",
